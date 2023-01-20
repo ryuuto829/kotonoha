@@ -5,8 +5,12 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const jisho = new JishoAPI()
-  const json = await jisho.searchForPhrase(req.query.keyword as string)
+  const keyword = req.query.keyword?.toString()
 
-  res.json(json)
+  if (keyword) {
+    const jisho = new JishoAPI()
+    const json = await jisho.searchForPhrase(keyword)
+
+    res.json(json)
+  }
 }

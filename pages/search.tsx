@@ -1,7 +1,42 @@
+import { useEffect, FormEvent } from 'react'
 import Head from 'next/head'
-import SearchForm from '../components/SearchForm'
+import { useRouter } from 'next/router'
+import { useMutation } from '@tanstack/react-query'
+
+import { BackspaceIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 export default function Search() {
+  const router = useRouter()
+  const currentSearchKeyword = router.query.q
+
+  const searchResult = useMutation({
+    mutationFn: async (keyword: string) => {
+      if (!keyword) return null
+
+      const data = await fetch(`/api/search/words?keyword=${keyword}`)
+      const json = await data.json()
+
+      console.log(json.data)
+
+      return json
+    }
+  })
+
+  useEffect(() => {
+    if (currentSearchKeyword) {
+      // searchResult.mutate(currentSearchKeyword)
+    }
+  }, [currentSearchKeyword])
+
+  const handleSearchFormSubmit = (event: FormEvent) => {
+    event.preventDefault()
+
+    const formData = new FormData(event.target as HTMLFormElement)
+    const searchInput = formData.get('search')
+
+    router.push(`/search?q=${searchInput}`, undefined, { shallow: true })
+  }
+
   return (
     <>
       <Head>
@@ -10,8 +45,74 @@ export default function Search() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
-        <SearchForm />
+
+      <main className="w-full max-w-2xl mx-auto px-2 py-4 text-gray-200">
+        {/* SEARCH FORM */}
+        <form onSubmit={handleSearchFormSubmit}>
+          <div className="relative">
+            <input
+              type="text"
+              className="block w-full p-2 pr-20 text-base bg-[color:rgb(37,37,37)] rounded"
+              placeholder="Search with English or Japanese"
+              name="search"
+              required
+            />
+            <div className="absolute inset-y-0 right-0">
+              <button
+                type="reset"
+                className="p-2 hover:text-red-400 transition"
+              >
+                <BackspaceIcon className="w-6 h-6" />
+              </button>
+              <button
+                type="submit"
+                className="p-2 hover:text-red-400 transition"
+              >
+                <MagnifyingGlassIcon className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {/* FILTERS */}
+        <div>Words Kanji Radicals</div>
+
+        {searchResult.isLoading && <div>Loading ...</div>}
+
+        {/* SEARCH RESULTS */}
+        {searchResult.data &&
+          searchResult.data.data.map((result) => {
+            return (
+              <a
+                href="#"
+                key={result.slug}
+                className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+              >
+                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  {result.japanese[0].word} 「{result.japanese[0].reading}」
+                </h5>
+                {result.is_common && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                    common
+                  </span>
+                )}
+                {result.jlpt[0] && (
+                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                    {result.jlpt[0]}
+                  </span>
+                )}
+
+                {result.senses.map((sense, i) => (
+                  <p
+                    key={i}
+                    className="font-normal text-gray-700 dark:text-gray-400"
+                  >
+                    {i + 1}. {sense.english_definitions}
+                  </p>
+                ))}
+              </a>
+            )
+          })}
       </main>
     </>
   )
