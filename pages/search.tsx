@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
 
 import { BackspaceIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { render } from 'react-dom'
 
 export default function Search() {
   const router = useRouter()
@@ -24,7 +25,7 @@ export default function Search() {
 
   useEffect(() => {
     if (currentSearchKeyword) {
-      // searchResult.mutate(currentSearchKeyword)
+      searchResult.mutate(currentSearchKeyword)
     }
   }, [currentSearchKeyword])
 
@@ -53,7 +54,7 @@ export default function Search() {
             <input
               type="text"
               className="block w-full p-2 pr-20 text-base bg-[color:rgb(37,37,37)] rounded"
-              placeholder="Search with English or Japanese"
+              placeholder="Search a Japanese or English word"
               name="search"
               required
             />
@@ -82,14 +83,29 @@ export default function Search() {
         {/* SEARCH RESULTS */}
         {searchResult.data &&
           searchResult.data.data.map((result) => {
+            const { word, reading } = result.japanese[0]
+
             return (
               <a
                 href="#"
                 key={result.slug}
                 className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
               >
-                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  {result.japanese[0].word} 「{result.japanese[0].reading}」
+                <h5 className="mb-2 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                  {result.japanese.map(({ word, reading }, index) => {
+                    return (
+                      <>
+                        {index == 1 && '、　'}
+                        <span
+                          key={index}
+                          className={index === 0 ? '' : 'text-gray-400'}
+                        >
+                          {index > 1 && '、　'}
+                          {word ? `${word}　【${reading}】` : reading}
+                        </span>
+                      </>
+                    )
+                  })}
                 </h5>
                 {result.is_common && (
                   <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
@@ -102,14 +118,31 @@ export default function Search() {
                   </span>
                 )}
 
-                {result.senses.map((sense, i) => (
-                  <p
-                    key={i}
-                    className="font-normal text-gray-700 dark:text-gray-400"
-                  >
-                    {i + 1}. {sense.english_definitions}
-                  </p>
-                ))}
+                {
+                  result.senses.reduce(
+                    (acc, current, i) => {
+                      const part = current.parts_of_speech.join(', ')
+
+                      if (acc.part !== part) {
+                        acc.part = part
+                        acc.render.push(
+                          <p className="text-sm text-gray-600">{part}</p>
+                        )
+                      }
+
+                      acc.render.push(
+                        <div key={i} className="text-gray-400">
+                          {i + 1}. {current.english_definitions.join(', ')}
+                          {current.info.length !== 0 && ' - '}
+                          {current.info.join(', ')}
+                        </div>
+                      )
+
+                      return { ...acc }
+                    },
+                    { part: '', render: [] }
+                  ).render
+                }
               </a>
             )
           })}
