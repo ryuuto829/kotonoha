@@ -1,32 +1,34 @@
-import { useEffect, FormEvent } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
+import { useEffect, FormEvent } from 'react'
+import { WordResult } from '../lib/types'
 
 import { BackspaceIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { render } from 'react-dom'
+import SearchResult from '../components/SearchResult'
 
 export default function Search() {
   const router = useRouter()
-  const currentSearchKeyword = router.query.q
+  const currentSearchKeyword = router.query.q as string
 
-  const searchResult = useMutation({
+  const searchResults = useMutation({
     mutationFn: async (keyword: string) => {
       if (!keyword) return null
 
-      const data = await fetch(`/api/search/words?keyword=${keyword}`)
-      const json = await data.json()
+      const response = await fetch(`/api/search/words?keyword=${keyword}`)
+      const { data } = await response.json()
 
-      console.log(json.data)
+      console.log(data)
 
-      return json
+      return data as WordResult[]
     }
   })
 
   useEffect(() => {
     if (currentSearchKeyword) {
-      searchResult.mutate(currentSearchKeyword)
+      searchResults.mutate(currentSearchKeyword)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSearchKeyword])
 
   const handleSearchFormSubmit = (event: FormEvent) => {
@@ -78,73 +80,12 @@ export default function Search() {
         {/* FILTERS */}
         <div>Words Kanji Radicals</div>
 
-        {searchResult.isLoading && <div>Loading ...</div>}
+        {searchResults.isLoading && <div>Loading ...</div>}
 
         {/* SEARCH RESULTS */}
-        {searchResult.data &&
-          searchResult.data.data.map((result) => {
-            const { word, reading } = result.japanese[0]
-
-            return (
-              <a
-                href="#"
-                key={result.slug}
-                className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-              >
-                <h5 className="mb-2 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-                  {result.japanese.map(({ word, reading }, index) => {
-                    return (
-                      <>
-                        {index == 1 && '、　'}
-                        <span
-                          key={index}
-                          className={index === 0 ? '' : 'text-gray-400'}
-                        >
-                          {index > 1 && '、　'}
-                          {word ? `${word}　【${reading}】` : reading}
-                        </span>
-                      </>
-                    )
-                  })}
-                </h5>
-                {result.is_common && (
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-                    common
-                  </span>
-                )}
-                {result.jlpt[0] && (
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-                    {result.jlpt[0]}
-                  </span>
-                )}
-
-                {
-                  result.senses.reduce(
-                    (acc, current, i) => {
-                      const part = current.parts_of_speech.join(', ')
-
-                      if (acc.part !== part) {
-                        acc.part = part
-                        acc.render.push(
-                          <p className="text-sm text-gray-600">{part}</p>
-                        )
-                      }
-
-                      acc.render.push(
-                        <div key={i} className="text-gray-400">
-                          {i + 1}. {current.english_definitions.join(', ')}
-                          {current.info.length !== 0 && ' - '}
-                          {current.info.join(', ')}
-                        </div>
-                      )
-
-                      return { ...acc }
-                    },
-                    { part: '', render: [] }
-                  ).render
-                }
-              </a>
-            )
+        {searchResults.data &&
+          searchResults.data.map((word) => {
+            return <SearchResult key={word.slug} word={word} />
           })}
       </main>
     </>
