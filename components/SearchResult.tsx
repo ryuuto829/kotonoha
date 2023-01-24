@@ -70,6 +70,11 @@ function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
       const partOfSpeech = meaning.parts_of_speech.join(', ')
       const listItems = [...list]
 
+      // Remove wikipedia definition from the list
+      if (partOfSpeech === 'Wikipedia definition') {
+        return listItems
+      }
+
       // 1. Adding a part of the speech info above definitions of the same type
       if (currentPartOfSpeech !== partOfSpeech) {
         currentPartOfSpeech = partOfSpeech
@@ -83,10 +88,36 @@ function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
       // 2. Adding definitions with all additional info
       listItems.push(
         <div key={index + 'd'} className="text-gray-400">
-          {index + 1}. {meaning.english_definitions.join(', ')}
-          {meaning.info.length !== 0 && ' - '}
-          {meaning.info.join(', ')}
-          {'Only applies to' + meaning.restrictions.join(', ')}
+          <span>
+            {`${index + 1}. ${meaning.english_definitions.join(', ')}`}
+          </span>
+
+          {meaning.info.length > 0 && (
+            <span className="text-gray-500 text-sm">
+              {` - ${meaning.info.join(', ')}`}
+            </span>
+          )}
+
+          {meaning.tags.length > 0 && (
+            <span className="text-gray-500 text-sm">
+              {` ${meaning.tags.join(', ')}`}
+            </span>
+          )}
+
+          {meaning.restrictions.length > 0 && (
+            <span className="text-gray-500 text-sm">
+              {`. Only applies to ${meaning.restrictions.join(', ')}`}
+            </span>
+          )}
+
+          {meaning.see_also.length > 0 && (
+            <span className="text-gray-500 text-sm">
+              {`. See also `}
+              <a href="#" className="text-blue-400">
+                {meaning.see_also.join(', ')}
+              </a>
+            </span>
+          )}
         </div>
       )
 
@@ -100,15 +131,12 @@ function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
 
 export default function WordResults({ word }: { word: WordResult }) {
   return (
-    <a
-      href="#"
-      className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-    >
+    <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
       <dl>
         <WordReadings readings={word.japanese} />
         <WordTags isCommon={word.is_common} jlpt={word.jlpt} />
         <WordMeanings meanings={word.senses} />
       </dl>
-    </a>
+    </div>
   )
 }
