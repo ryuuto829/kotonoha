@@ -1,3 +1,9 @@
+import type { NextPage } from 'next'
+import type { ReactElement, ReactNode } from 'react'
+
+/**
+ * Jisho API
+ */
 export type WordResult = {
   attribution: {
     dbpedia: boolean
@@ -27,4 +33,11 @@ export type WordMeaning = {
   see_also: string[]
   source: string[]
   tags: string[]
+}
+
+/**
+ * Layout page
+ */
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode
 }
