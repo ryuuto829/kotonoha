@@ -129,7 +129,12 @@ function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
   return <dd>{definitionList}</dd>
 }
 
-export default function WordResults({ word }: { word: WordResult }) {
+export default function SearchResult({
+  word,
+  getDetails
+}: {
+  word: WordResult
+}) {
   return (
     <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
       <dl>
@@ -137,6 +142,7 @@ export default function WordResults({ word }: { word: WordResult }) {
         <WordTags isCommon={word.is_common} jlpt={word.jlpt} />
         <WordMeanings meanings={word.senses} />
       </dl>
+      <button onClick={() => getDetails(word.slug)}>More Details ...</button>
     </div>
   )
 }
