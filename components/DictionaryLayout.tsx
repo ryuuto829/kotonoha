@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 
 import getKanjisFromText from '../lib/getKanjisFromText'
@@ -11,8 +12,17 @@ export default function DictionaryLayout({
   children: ReactNode
 }) {
   const router = useRouter()
-  const currentSearchKeyword = router.query.q as string
+
+  const [currentSearchKeyword, setCurrentSearchKeyword] = useState(
+    router.query.q as string
+  )
   const kanjiList = getKanjisFromText(currentSearchKeyword)
+
+  useEffect(() => {
+    if (router.pathname === '/dictionary' && router.query.q) {
+      setCurrentSearchKeyword(router.query.q)
+    }
+  }, [router])
 
   const handleSearchFormSubmit = (event: FormEvent) => {
     event.preventDefault()
@@ -55,16 +65,19 @@ export default function DictionaryLayout({
         {/* SEARCH FILTER */}
         <div className="flex items-center py-4">
           {/* All results */}
-          <Link
-            href={`/dictionary?q=${currentSearchKeyword}`}
-            className={`inline-flex px-3 py-2 mr-1 text-sm text-white text-center rounded-lg border border-gray-600 ${
-              router.pathname === '/dictionary' && !router.query.details
-                ? 'bg-blue-700'
-                : ''
-            }`}
-          >
-            Search results
-          </Link>
+
+          {currentSearchKeyword && (
+            <Link
+              href={`/dictionary?q=${currentSearchKeyword}`}
+              className={`inline-flex items-center h-9 px-3 text-sm text-white text-center rounded ${
+                router.pathname === '/dictionary' && !router.query.details
+                  ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
+                  : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
+              }`}
+            >
+              Search results
+            </Link>
+          )}
 
           {/* Get kanji details */}
           {kanjiList &&
@@ -72,8 +85,11 @@ export default function DictionaryLayout({
               <Link
                 key={kanji}
                 href={`/dictionary/kanji?q=${kanji}`}
-                className={`inline-flex px-3 py-2 mr-1 text-sm text-white text-center rounded-lg border border-gray-600 ${
-                  router.pathname === '/dictionary/kanji' ? 'bg-blue-700' : ''
+                className={`inline-flex items-center h-9 px-3 ml-1.5 text-lg text-white text-center rounded ${
+                  router.query.q === kanji &&
+                  router.pathname === '/dictionary/kanji'
+                    ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
+                    : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
                 }`}
               >
                 {kanji}
@@ -82,9 +98,13 @@ export default function DictionaryLayout({
 
           {/* Current details */}
           {router.query.details && (
-            <span className="inline-flex px-3 py-2 mr-1 text-sm text-white text-center rounded-lg border border-gray-600 bg-blue-700">
-              Details here
-            </span>
+            <Link
+              href={`/dictionary?q=${currentSearchKeyword}&details=${router.query.details}`}
+              className="inline-flex items-center h-9 px-3 ml-1.5 text-sm text-white text-center rounded shadow-md bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]"
+            >
+              <span className="pr-1">Details for</span>
+              <span className="text-lg">{router.query.details}</span>
+            </Link>
           )}
         </div>
 

@@ -1,19 +1,29 @@
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { ReactNode } from 'react'
+import ArrowLongRightIcon from '@heroicons/react/24/outline/ArrowLongRightIcon'
 import { WordReading, WordMeaning, WordResult } from '../lib/types'
 
 /**
  * Comma-separated list of word readings and kanji forms
  */
-function WordReadings({ readings }: { readings: WordReading[] }) {
+function WordReadings({
+  readings,
+  searchText
+}: {
+  readings: WordReading[]
+  searchText: string
+}) {
   return (
     <dt className="mb-2 text-lg font-bold tracking-tight text-gray-900 dark:text-white">
       {readings.map(({ word, reading }, index) => {
         return (
           <span key={index}>
-            {index == 1 && '、　'}
+            {index == 1 && '、 '}
             <span className={index === 0 ? '' : 'text-gray-400'}>
-              {index > 1 && '、　'}
-              {word ? `${word}　【${reading}】` : reading}
+              {index > 1 && '、 '}
+              <span>{word || reading}</span>
+              {word && <span>{` 【${reading}】`}</span>}
             </span>
           </span>
         )
@@ -41,7 +51,13 @@ function JlptTag({ tagLablel }: { tagLablel: string }) {
   )
 }
 
-function WordTags({ isCommon, jlpt }: { isCommon: boolean; jlpt: string[] }) {
+export function WordTags({
+  isCommon,
+  jlpt
+}: {
+  isCommon: boolean
+  jlpt: string[]
+}) {
   const isJlpt = jlpt.length > 0
 
   if (!isCommon && !isJlpt) {
@@ -49,7 +65,7 @@ function WordTags({ isCommon, jlpt }: { isCommon: boolean; jlpt: string[] }) {
   }
 
   return (
-    <div>
+    <div className="inline-flex items-center justify-center">
       {isCommon && <CommonTag />}
       {isJlpt &&
         jlpt.map((tagLablel) => (
@@ -62,7 +78,7 @@ function WordTags({ isCommon, jlpt }: { isCommon: boolean; jlpt: string[] }) {
 /**
  * List of all definitions
  */
-function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
+export function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
   let currentPartOfSpeech: string
 
   const definitionList = meanings.reduce<ReactNode[]>(
@@ -129,20 +145,29 @@ function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
   return <dd>{definitionList}</dd>
 }
 
-export default function SearchResult({
-  word,
-  getDetails
-}: {
-  word: WordResult
-}) {
+export default function SearchResult({ word }: { word: WordResult }) {
+  const router = useRouter()
+
   return (
-    <div className="block w-full p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+    <div className="block w-full p-6">
       <dl>
-        <WordReadings readings={word.japanese} />
+        <WordReadings
+          readings={word.japanese}
+          searchText={router.query.q as string}
+        />
         <WordTags isCommon={word.is_common} jlpt={word.jlpt} />
         <WordMeanings meanings={word.senses} />
       </dl>
-      <button onClick={() => getDetails(word.slug)}>More Details ...</button>
+      <Link
+        href={{
+          href: router.pathname,
+          query: { ...router.query, details: word.slug }
+        }}
+        className="inline-flex items-center mt-2 text-white text-opacity-80 text-sm rounded h-7 px-2 hover:bg-white hover:bg-opacity-5"
+      >
+        <span className="mr-2">More Details</span>
+        <ArrowLongRightIcon className="h-5 w-5" />
+      </Link>
     </div>
   )
 }
