@@ -84,10 +84,9 @@ export default function DictionaryLayout({
             kanjiList.map((kanji) => (
               <Link
                 key={kanji}
-                href={`/dictionary/kanji?q=${kanji}`}
+                href={`/dictionary/kanji/${kanji}`}
                 className={`inline-flex items-center h-9 px-3 ml-1.5 text-lg text-white text-center rounded ${
-                  router.query.q === kanji &&
-                  router.pathname === '/dictionary/kanji'
+                  router.pathname === `/dictionary/kanji/${kanji}`
                     ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
                     : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
                 }`}
