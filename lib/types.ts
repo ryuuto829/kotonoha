@@ -4,6 +4,7 @@ import type { ReactElement, ReactNode } from 'react'
 /**
  * Jisho API
  */
+
 export type WordResult = {
   attribution: {
     dbpedia: boolean
@@ -38,6 +39,33 @@ export type WordMeaning = {
 /**
  * Layout page
  */
+
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
+}
+
+/**
+ * Dictionaries
+ */
+
+export type KanjiDetails = {
+  kanji: string
+  grade: number
+  stroke_count: number
+  meanings: string[]
+  kun_readings: string[]
+  on_readings: string[]
+  name_readings: string[]
+  jlpt: number
+  unicode: string
+  heisig_en: string
+}
+
+export type KanjiStrokePath = {
+  id: string
+  d: string
+  start: {
+    x: string
+    y: string
+  }
 }
