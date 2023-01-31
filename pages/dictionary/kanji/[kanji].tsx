@@ -1,10 +1,11 @@
 import kanjiDictionary from '../../../resources/kanjis.json'
 import kanjiStrokes from '../../../resources/kanjiStrokes.json'
 
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { toHiragana } from 'wanakana'
-import { Fragment, ReactElement } from 'react'
-import { KanjiDetails, KanjiStrokePath } from '../../../lib/types'
+import type { ReactElement } from 'react'
+import type { KanjiDetails, KanjiStrokePath } from '../../../lib/types'
 
 import DictionaryLayout from '../../../components/DictionaryLayout'
 
@@ -65,15 +66,15 @@ function ReadingLinks({
   return (
     <>
       {readings.map((reading, index) => (
-        <span key={reading}>
+        <dd key={reading}>
           {index > 0 ? '、 ' : null}
           <Link
             href={`/dictionary?q=${getWordWithReadingURL(kanji, reading)}`}
-            className="text-blue-400"
+            className="text-blue-400 text-xl"
           >
             {reading}
           </Link>
-        </span>
+        </dd>
       ))}
     </>
   )
@@ -92,14 +93,14 @@ function StrokeOrderDiagrams({
         return (
           <div
             key={stroke.id}
-            className="inline-flex border border-gray-600 rounded m-1"
+            className="inline-flex border border-white border-opacity-20 rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="109"
               height="109"
               viewBox="0 0 109 109"
-              className="h-14 w-14 p-2"
+              className="h-16 w-16 p-2"
             >
               {strokePaths.map((strokePath, index) => {
                 const hasKanjiDirection = index + 1 === strokePaths.length
@@ -109,7 +110,7 @@ function StrokeOrderDiagrams({
                     <g
                       style={{
                         fill: 'none',
-                        stroke: hasKanjiDirection ? '#FF8000' : '#404040',
+                        stroke: hasKanjiDirection ? '#FFFFFF' : '#999',
                         strokeWidth: '3',
                         strokeLinecap: 'round',
                         strokeLinejoin: 'round'
@@ -123,7 +124,7 @@ function StrokeOrderDiagrams({
                         <circle
                           cx={strokePath.start.x}
                           cy={strokePath.start.y}
-                          r="6"
+                          r="5"
                         ></circle>
                       </g>
                     )}
@@ -148,52 +149,77 @@ export default function Kanji({
   const kanjiListByGrade = getKanjiListByGrade(kanji.grade)
 
   return (
-    <div className="bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl">
-      <div className="text-3xl">{kanji.kanji}</div>
+    <dl className="grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
+      {/* Kanji literal */}
+      <dt className="sr-only">Kanji literal</dt>
+      <dd>
+        <h1 className="text-5xl">{kanji.kanji}</h1>
+      </dd>
+
+      {/* Stroke count, JLPT and grade */}
       <div>
-        {/* Stroke count */}
         <div>
-          <span>Strokes: </span>
-          <span className="font-bold">{kanji.stroke_count}</span>
+          <dt className="sr-only">Stroke count</dt>
+          <dd>
+            <span>Strokes: </span>
+            <strong className="font-bold">{kanji.stroke_count}</strong>
+          </dd>
         </div>
 
-        {/* Jlpt */}
         {kanji.jlpt && (
           <div>
-            <span>JLPT level </span>
-            <span className="font-bold">{`N${kanji.jlpt}`}</span>
+            <dt className="sr-only">JLPT level</dt>
+            <dd>
+              <span>JLPT level </span>
+              <strong className="font-bold">{`N${kanji.jlpt}`}</strong>
+            </dd>
           </div>
         )}
 
-        {/* Grade */}
         {kanjiListByGrade && (
           <div>
-            <span>{`${kanjiListByGrade}, taught in `}</span>
-            <span className="font-bold">{`grade ${kanji.grade}`}</span>
+            <dt className="sr-only">Kanji grade</dt>
+            <dd>
+              <span>{`${kanjiListByGrade}, taught in `}</span>
+              <strong className="font-bold">{`grade ${kanji.grade}`}</strong>
+            </dd>
           </div>
         )}
       </div>
+
+      {/* Meanings */}
       <div>
-        <div>Definitions</div>
-        <div>{kanji.meanings.join(', ')}</div>
+        <dt className="text-sm font-medium text-white text-opacity-50">
+          Definitions
+        </dt>
+        <dd className="mt-1 text-lg">{kanji.meanings.join(', ')}</dd>
       </div>
 
       {/* Readings */}
       <div>
-        <span>Kun: </span>
-        <ReadingLinks kanji={kanji.kanji} readings={kanji.kun_readings} />
-      </div>
-      <div>
-        <span>On: </span>
-        <ReadingLinks kanji={kanji.kanji} readings={kanji.on_readings} />
+        <h2 className="text-sm font-medium text-white text-opacity-50">
+          Readings
+        </h2>
+        <dl className="mt-1 flex items-baseline space-x-2">
+          <dt>Kun: </dt>
+          <ReadingLinks kanji={kanji.kanji} readings={kanji.kun_readings} />
+        </dl>
+        <dl className="mt-1 flex items-baseline space-x-2">
+          <dt>On: </dt>
+          <ReadingLinks kanji={kanji.kanji} readings={kanji.on_readings} />
+        </dl>
       </div>
 
       {/* Stroke Order */}
       <div>
-        <div>Stroke Order</div>
-        <StrokeOrderDiagrams kanjiStrokes={kanjiStrokes} />
+        <h2 className="text-sm font-medium text-white text-opacity-50">
+          Stroke Order
+        </h2>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <StrokeOrderDiagrams kanjiStrokes={kanjiStrokes} />
+        </div>
       </div>
-    </div>
+    </dl>
   )
 }
 

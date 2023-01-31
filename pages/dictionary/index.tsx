@@ -2,12 +2,12 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
-import type { WordResult } from '../lib/types'
+import type { WordResult } from '../../lib/types'
 
-import { WordTags, WordMeanings } from '../components/SearchResult'
+import { WordTags, WordMeanings } from '../../components/SearchResult'
 
-import DictionaryLayout from '../components/DictionaryLayout'
-import SearchResult from '../components/SearchResult'
+import DictionaryLayout from '../../components/DictionaryLayout'
+import SearchResult from '../../components/SearchResult'
 import Link from 'next/link'
 
 export default function Dictionary() {
