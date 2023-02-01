@@ -27,37 +27,22 @@ function WordReadings({ readings }: { readings: WordReading[] }) {
   )
 }
 
-function CommonTag() {
-  return (
-    <abbr className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-      common
-    </abbr>
-  )
-}
-
-function JlptTag({ label }: { label: string }) {
-  return (
-    <abbr
-      title="Japanese-Language Proficiency Test"
-      className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 no-underline"
-    >
-      {label}
-    </abbr>
-  )
-}
-
-export function WordTags({
-  isCommon,
-  jlpt
-}: {
-  isCommon: boolean
-  jlpt: string[]
-}) {
+function WordTags({ isCommon, jlpt }: { isCommon: boolean; jlpt: string[] }) {
   return (
     <div className="inline-flex items-center">
-      {isCommon && <CommonTag />}
+      {isCommon && (
+        <abbr className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+          common
+        </abbr>
+      )}
       {jlpt?.map((label) => (
-        <JlptTag key={label} label={label} />
+        <abbr
+          key={label}
+          title="Japanese-Language Proficiency Test"
+          className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 no-underline"
+        >
+          {label}
+        </abbr>
       ))}
     </div>
   )
@@ -144,10 +129,10 @@ function SearchResults({
   currentSearchWord: string
 }) {
   return (
-    <div className="bg-[rgb(32,32,32)] mt-5 rounded-xl divide-y divide-white divide-opacity-20 shadow-md">
+    <div className="mt-5 rounded-xl divide-y divide-white divide-opacity-20">
       {words.map((word) => {
         return (
-          <div key={word.slug} className="block w-full p-6">
+          <div key={word.slug} className="block w-full py-5">
             <dl className="grid gap-4">
               <WordReadings readings={word.japanese} />
 

@@ -200,14 +200,20 @@ export default function Kanji({
         <h2 className="text-sm font-medium text-white text-opacity-50">
           Readings
         </h2>
-        <dl className="mt-1 flex items-baseline space-x-2">
-          <dt>Kun: </dt>
-          <ReadingLinks kanji={kanji.kanji} readings={kanji.kun_readings} />
-        </dl>
-        <dl className="mt-1 flex items-baseline space-x-2">
-          <dt>On: </dt>
-          <ReadingLinks kanji={kanji.kanji} readings={kanji.on_readings} />
-        </dl>
+
+        {kanji.kun_readings.length > 0 && (
+          <dl className="mt-1 flex items-baseline space-x-2">
+            <dt>Kun: </dt>
+            <ReadingLinks kanji={kanji.kanji} readings={kanji.kun_readings} />
+          </dl>
+        )}
+
+        {kanji.on_readings.length > 0 && (
+          <dl className="mt-1 flex items-baseline space-x-2">
+            <dt>On: </dt>
+            <ReadingLinks kanji={kanji.kanji} readings={kanji.on_readings} />
+          </dl>
+        )}
       </div>
 
       {/* Stroke Order */}
