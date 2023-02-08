@@ -14,11 +14,13 @@ specifiers:
   autoprefixer: ^10.4.13
   eslint: 8.31.0
   eslint-config-next: 13.1.1
+  nanoid: ^4.0.1
   next: 13.1.1
   postcss: ^8.4.21
   react: 18.2.0
   react-dom: 18.2.0
   rxdb: ^13.17.1
+  rxdb-hooks: ^4.1.0
   rxjs: ^7.8.0
   tailwindcss: ^3.2.4
   typescript: 4.9.4
@@ -37,10 +39,12 @@ dependencies:
   '@types/react-dom': 18.0.10
   eslint: 8.31.0
   eslint-config-next: 13.1.1_iukboom6ndih5an6iafl45j2fe
+  nanoid: 4.0.1
   next: 13.1.1_biqbaboplfbrettd7655fr4n2y
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   rxdb: 13.17.1_rxjs@7.8.0
+  rxdb-hooks: 4.1.0_imlnr4dr7m3tvo4gjwp5pamfue
   rxjs: 7.8.0
   typescript: 4.9.4
   unofficial-jisho-api: 2.3.0
@@ -3569,6 +3573,12 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  /nanoid/4.0.1:
+    resolution: {integrity: sha512-udKGtCCUafD3nQtJg9wBhRP3KMbPglUsgV5JVsXhvyBs/oefqb4sqMEhKBBgqZncYowu58p1prsZQBYvAj/Gww==}
+    engines: {node: ^14 || ^16 || >=18}
+    hasBin: true
+    dev: false
+
   /natural-compare/1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: false
@@ -4443,6 +4453,20 @@ packages:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
       queue-microtask: 1.2.3
+
+  /rxdb-hooks/4.1.0_imlnr4dr7m3tvo4gjwp5pamfue:
+    resolution: {integrity: sha512-Pbqwkce+gOT5VwlLDJYrFHxw+SBiBgd8zz7O3VIP3efD+4e+aYO+9+YxIUbZx+9ex2kz+BICAnM8eu5gkd1CEw==}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+      rxdb: '>=10'
+      rxjs: '>=7.5.4'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      rxdb: 13.17.1_rxjs@7.8.0
+      rxjs: 7.8.0
+    dev: false
 
   /rxdb/13.17.1_rxjs@7.8.0:
     resolution: {integrity: sha512-cjVBDRxojmnTGWSHHaown+v32FiAD01BLMEUD10uqSVzwyLBHCoE3VBIRxaU4ZCQ5Up7r0R75bc1DatqtdISsw==}

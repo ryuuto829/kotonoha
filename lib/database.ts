@@ -1,20 +1,29 @@
 import { createRxDatabase, addRxPlugin, RxDatabase } from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/dexie'
-import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode'
+import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 
 import { wordSchema } from './schema'
 
-addRxPlugin(RxDBDevModePlugin)
+// Enable mango-query-syntax with chained methods
+addRxPlugin(RxDBQueryBuilderPlugin)
+
+// Dev Mode adds readable error messages
+if (process.env.NODE_ENV === 'development') {
+  import('rxdb/plugins/dev-mode').then(({ RxDBDevModePlugin }) =>
+    addRxPlugin(RxDBDevModePlugin as any)
+  )
+}
 
 let dbPromise: Promise<RxDatabase> | null = null
 
-export const _create = async () => {
+const _create = async () => {
+  // create RxDB
   const db = await createRxDatabase({
     name: 'kotonoha-db',
     storage: getRxStorageDexie()
   })
 
-  console.log('db created')
+  console.log('DatabaseService: create database')
 
   // create collections
   await db.addCollections({
@@ -23,7 +32,13 @@ export const _create = async () => {
     }
   })
 
-  console.log('db add collections')
+  console.log('DatabaseService: create collections')
+
+  // hooks
+  // ...
+
+  // maybe sync collection to a remote
+  // ...
 
   return db
 }

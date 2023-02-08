@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import type { WordResult } from '../lib/types'
 import PlusIcon from '@heroicons/react/24/outline/PlusIcon'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
+import { useRxCollection } from 'rxdb-hooks'
+import { nanoid } from 'nanoid'
 
 function ReadingsToggleGroup({ readings, handleInputChange }) {
   return (
@@ -50,6 +52,7 @@ function ReadingsToggleGroup({ readings, handleInputChange }) {
 }
 
 export default function AddWordDialog({ word }: { word: WordResult }) {
+  const wordsCollection = useRxCollection('words')
   const [mainReading, ...otherReadings] = word.japanese
 
   const initialInputsValues = word
@@ -75,6 +78,19 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
   const addSuggestedMeaning = (meaning) => {
     meaningRef.current.textContent =
       inputs.reading + ' - ' + meaning.english_definitions.join(', ')
+  }
+
+  const handleWordSave = async () => {
+    try {
+      await wordsCollection.upsert({
+        id: nanoid(8),
+        word: inputs.word,
+        meaning: inputs.meaning
+      })
+      console.log('db: add word')
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   return (
@@ -177,7 +193,7 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
               justifyContent: 'flex-end'
             }}
           >
-            <Dialog.Close asChild>
+            <Dialog.Close asChild onClick={handleWordSave}>
               <button className="Button green">Save changes</button>
             </Dialog.Close>
           </div>

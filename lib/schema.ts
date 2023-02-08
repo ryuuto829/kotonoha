@@ -2,19 +2,19 @@ export const wordSchema = {
   title: 'word schema',
   description: '',
   version: 0,
-  primaryKey: 'name',
+  primaryKey: 'id',
   type: 'object',
   properties: {
-    name: {
+    id: {
       type: 'string',
       maxLength: 100
     },
-    reading: {
+    word: {
       type: 'string'
     },
     meaning: {
       type: 'string'
     }
   },
-  required: ['name', 'meaning']
+  required: ['id', 'word', 'meaning']
 }
