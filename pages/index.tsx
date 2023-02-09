@@ -13,7 +13,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="pt-16 min-h-screen bg-[rgb(25,25,25)]">Home page</main>
+      <div>Home page</div>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import type { WordResult } from '../lib/types'
@@ -78,10 +78,13 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
   const addSuggestedMeaning = (meaning) => {
     meaningRef.current.textContent =
       inputs.reading + ' - ' + meaning.english_definitions.join(', ')
+
+    handleInputChange({ meaning: meaningRef.current.textContent })
   }
 
   const handleWordSave = async () => {
     try {
+      console.log(inputs)
       await wordsCollection.upsert({
         id: nanoid(8),
         word: inputs.word,

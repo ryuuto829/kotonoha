@@ -149,7 +149,7 @@ export default function DictionaryLayout({
   }
 
   return (
-    <main className="w-full max-w-2xl mx-auto px-2 py-4 text-gray-200">
+    <>
       {/* Search by context */}
       <SearchForm
         handleSearchFormSubmit={handleSearchFormSubmit}
@@ -163,6 +163,6 @@ export default function DictionaryLayout({
 
       {/* Context pages */}
       {children}
-    </main>
+    </>
   )
 }
