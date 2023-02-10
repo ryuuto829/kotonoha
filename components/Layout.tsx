@@ -29,8 +29,8 @@ export function Navbar() {
                 href={url}
                 className={`flex items-center h-16 flex-grow-0 flex-shrink-0 text-white transition hover:text-opacity-80 ${
                   router.pathname == url
-                    ? 'border-b-2 border-white border-opacity-80 font-medium text-opacity-80'
-                    : 'pb-0.5 text-opacity-40'
+                    ? 'pb-0 border-b-2 border-white border-opacity-80 text-opacity-80'
+                    : 'pb-[1.6px] text-opacity-40'
                 }`}
               >
                 {label}

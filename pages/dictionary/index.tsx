@@ -250,7 +250,11 @@ export default function Dictionary() {
       {details && <WordDetails word={details} />}
 
       {/* Modal */}
-      {details && <AddWordDialog word={details} />}
+      {details && (
+        <AddWordDialog word={details}>
+          <button>Add word</button>
+        </AddWordDialog>
+      )}
     </>
   )
 }

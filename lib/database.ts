@@ -1,11 +1,13 @@
 import { createRxDatabase, addRxPlugin, RxDatabase } from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
+import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
 import { wordSchema } from './schema'
 
 // Enable mango-query-syntax with chained methods
 addRxPlugin(RxDBQueryBuilderPlugin)
+addRxPlugin(RxDBUpdatePlugin)
 
 // Dev Mode adds readable error messages
 if (process.env.NODE_ENV === 'development') {

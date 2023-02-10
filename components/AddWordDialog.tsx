@@ -51,27 +51,26 @@ function ReadingsToggleGroup({ readings, handleInputChange }) {
   )
 }
 
-export default function AddWordDialog({ word }: { word: WordResult }) {
+export default function AddWordDialog({
+  word,
+  id,
+  children
+}: {
+  word?: WordResult
+  id?: string
+  children: React.ReactNode
+}) {
   const wordsCollection = useRxCollection('words')
-  const [mainReading, ...otherReadings] = word.japanese
-
-  const initialInputsValues = word
-    ? {
-        word: mainReading.word || mainReading.reading || '',
-        reading: mainReading.reading || '',
-        meaning: ''
-      }
-    : {
-        word: '',
-        meaning: ''
-      }
-
-  const [inputs, setInputs] = useState(initialInputsValues)
-
   const meaningRef = useRef(null)
 
-  const handleInputChange = (word) => {
-    console.log(word)
+  const [wordDocument, setWordDocument] = useState()
+  const [inputs, setInputs] = useState({
+    word: '',
+    reading: '',
+    meaning: ''
+  })
+
+  const handleInputChange = (word: typeof inputs) => {
     setInputs({ ...inputs, ...word })
   }
 
@@ -83,26 +82,57 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
   }
 
   const handleWordSave = async () => {
-    try {
-      console.log(inputs)
-      await wordsCollection.upsert({
+    // Create
+    if (!id) {
+      await wordsCollection?.upsert({
         id: nanoid(8),
         word: inputs.word,
         meaning: inputs.meaning
       })
-      console.log('db: add word')
-    } catch (err) {
-      console.log(err)
+      console.log('DatabaseService: create doc')
+    }
+
+    // Update
+    if (id) {
+      await wordDocument?.update({
+        $set: {
+          word: inputs.word,
+          meaning: inputs.meaning
+        }
+      })
+      console.log('DatabaseService: update doc')
+    }
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    if (open && id) {
+      wordsCollection
+        ?.findOne(id)
+        .exec()
+        .then((doc) => {
+          setWordDocument(doc)
+          handleInputChange({
+            word: doc.word,
+            reading: '',
+            meaning: doc.meaning
+          })
+        })
+    }
+
+    if (open && word) {
+      const mainReading = word.japanese[0]
+
+      handleInputChange({
+        word: mainReading.word || mainReading.reading || '',
+        reading: mainReading.reading || '',
+        meaning: ''
+      })
     }
   }
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild>
-        <button className="Button violet" size="large">
-          Add word
-        </button>
-      </Dialog.Trigger>
+    <Dialog.Root onOpenChange={handleOpenChange}>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-20" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
@@ -117,15 +147,13 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
 
             {!word && (
               <div
+                id="word"
                 contentEditable="true"
                 suppressContentEditableWarning
                 className="w-full overflow-hidden resize-y"
-                id="word"
-                onInput={(e) =>
-                  handleInputChange({ reading: e.target.innerText })
-                }
+                onInput={(e) => handleInputChange({ word: e.target.innerText })}
               >
-                {mainReading.word || ''}
+                {id && wordDocument?.word}
               </div>
             )}
 
@@ -154,7 +182,9 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
               onInput={(e) =>
                 handleInputChange({ meaning: e.target.innerText })
               }
-            ></div>
+            >
+              {id && wordDocument?.meaning}
+            </div>
           </fieldset>
 
           {/* Suggested Meanings */}
@@ -188,14 +218,7 @@ export default function AddWordDialog({ word }: { word: WordResult }) {
             </fieldset>
           )}
 
-          <div>Deck names ...</div>
-          <div
-            style={{
-              display: 'flex',
-              marginTop: 25,
-              justifyContent: 'flex-end'
-            }}
-          >
+          <div className="flex justify-end mt-6">
             <Dialog.Close asChild onClick={handleWordSave}>
               <button className="Button green">Save changes</button>
             </Dialog.Close>
