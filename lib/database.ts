@@ -1,9 +1,16 @@
-import { createRxDatabase, addRxPlugin, RxDatabase } from 'rxdb'
+import {
+  createRxDatabase,
+  addRxPlugin,
+  RxDatabase,
+  removeRxDatabase
+} from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
 import { wordSchema } from './schema'
+
+// removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
 // Enable mango-query-syntax with chained methods
 addRxPlugin(RxDBQueryBuilderPlugin)

@@ -6,6 +6,21 @@ import PlusIcon from '@heroicons/react/24/outline/PlusIcon'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
 import { useRxCollection } from 'rxdb-hooks'
 import { nanoid } from 'nanoid'
+import { CircleIcon, CheckCircledIcon, TargetIcon } from '@radix-ui/react-icons'
+
+const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
+
+export const REVIEW_STATUS = [
+  { status: '1', label: 'NEW', icon: <CircleIcon className="w-4 h-4" /> },
+  { status: '2', label: '3 DAYS', icon: <TargetIcon className="w-4 h-4" /> },
+  { status: '3', label: '7 DAYS', icon: <TargetIcon className="w-4 h-4" /> },
+  { status: '4', label: '15 DAYS', icon: <TargetIcon className="w-4 h-4" /> },
+  {
+    status: '5',
+    label: 'KNOWN',
+    icon: <CheckCircledIcon className="w-4 h-4" />
+  }
+]
 
 function ReadingsToggleGroup({ readings, handleInputChange }) {
   return (
@@ -67,7 +82,8 @@ export default function AddWordDialog({
   const [inputs, setInputs] = useState({
     word: '',
     reading: '',
-    meaning: ''
+    meaning: '',
+    status: '1'
   })
 
   const handleInputChange = (word: typeof inputs) => {
@@ -87,7 +103,18 @@ export default function AddWordDialog({
       await wordsCollection?.upsert({
         id: nanoid(8),
         word: inputs.word,
-        meaning: inputs.meaning
+        meaning: inputs.meaning,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastReviewedAt: '',
+        dueDate:
+          inputs.status !== '5'
+            ? new Date(
+                new Date().getTime() +
+                  86400000 * DEFAULT_REVIEW_INTERVALS[inputs.status - 1]
+              ).toISOString()
+            : '',
+        reviewStatus: inputs.status
       })
       console.log('DatabaseService: create doc')
     }
@@ -97,7 +124,18 @@ export default function AddWordDialog({
       await wordDocument?.update({
         $set: {
           word: inputs.word,
-          meaning: inputs.meaning
+          meaning: inputs.meaning,
+          updatedAt: new Date().toISOString(),
+          dueDate:
+            inputs.status !== '5'
+              ? new Date(
+                  new Date(
+                    wordDocument.lastReviewedAt || wordDocument.createdAt
+                  ).getTime() +
+                    86400000 * DEFAULT_REVIEW_INTERVALS[Number(inputs.status)]
+                ).toISOString()
+              : '',
+          reviewStatus: inputs.status
         }
       })
       console.log('DatabaseService: update doc')
@@ -110,11 +148,13 @@ export default function AddWordDialog({
         ?.findOne(id)
         .exec()
         .then((doc) => {
+          console.log(doc)
           setWordDocument(doc)
           handleInputChange({
             word: doc.word,
             reading: '',
-            meaning: doc.meaning
+            meaning: doc.meaning,
+            status: doc.reviewStatus
           })
         })
     }
@@ -125,7 +165,8 @@ export default function AddWordDialog({
       handleInputChange({
         word: mainReading.word || mainReading.reading || '',
         reading: mainReading.reading || '',
-        meaning: ''
+        meaning: '',
+        status: '1'
       })
     }
   }
@@ -136,6 +177,18 @@ export default function AddWordDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-20" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
+          {/* Buttons */}
+          <div className="flex justify-between">
+            <Dialog.Close asChild>
+              <button className="IconButton" aria-label="Close">
+                close
+              </button>
+            </Dialog.Close>
+            <Dialog.Close asChild onClick={handleWordSave}>
+              <button className="Button green">Save changes</button>
+            </Dialog.Close>
+          </div>
+
           {/* Word */}
           <fieldset className="min-w-0">
             <label
@@ -218,16 +271,37 @@ export default function AddWordDialog({
             </fieldset>
           )}
 
-          <div className="flex justify-end mt-6">
-            <Dialog.Close asChild onClick={handleWordSave}>
-              <button className="Button green">Save changes</button>
-            </Dialog.Close>
+          {/* Status */}
+          <div>
+            <ToggleGroup.Root
+              className="flex flex-nowrap items-center gap-2"
+              type="single"
+              defaultValue={inputs.status}
+              value={inputs.status}
+              aria-label="Text alignment"
+              onValueChange={(value) => {
+                handleInputChange({ status: value })
+              }}
+            >
+              {REVIEW_STATUS.map(({ status, label, icon }) => {
+                return (
+                  <ToggleGroup.Item
+                    key={status}
+                    className="flex items-center space-x-2 whitespace-nowrap border border-white border-opacity-20 px-4 py-2 rounded hover:bg-white hover:bg-opacity-5 data-[state=on]:bg-blue-300"
+                    onClick={(e) => {
+                      e.currentTarget.dataset.state === 'on' &&
+                        e.preventDefault()
+                    }}
+                    value={status}
+                    aria-label={label}
+                  >
+                    {/* {icon} */}
+                    <span className="text-xs">{label}</span>
+                  </ToggleGroup.Item>
+                )
+              })}
+            </ToggleGroup.Root>
           </div>
-          <Dialog.Close asChild>
-            <button className="IconButton" aria-label="Close">
-              close
-            </button>
-          </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
