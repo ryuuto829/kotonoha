@@ -6,7 +6,7 @@ import type { ReactElement, ReactNode } from 'react'
 import type { WordReading, WordMeaning, WordResult } from '../../lib/types'
 
 import ArrowLongRightIcon from '@heroicons/react/24/outline/ArrowLongRightIcon'
-import DictionaryLayout from '../../components/DictionaryLayout'
+import DictionaryLayout from '../../layouts/DictionaryLayout'
 import AddWordDialog from '../../components/AddWordDialog'
 
 function WordReadings({ readings }: { readings: WordReading[] }) {

@@ -7,7 +7,7 @@ import { toHiragana } from 'wanakana'
 import type { ReactElement } from 'react'
 import type { KanjiDetails, KanjiStrokePath } from '../../../lib/types'
 
-import DictionaryLayout from '../../../components/DictionaryLayout'
+import DictionaryLayout from '../../../layouts/DictionaryLayout'
 
 export async function getStaticPaths() {
   const paths = Object.keys(kanjiDictionary.kanjis).map((kanji) => {

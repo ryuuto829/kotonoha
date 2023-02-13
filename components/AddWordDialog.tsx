@@ -66,6 +66,27 @@ function ReadingsToggleGroup({ readings, handleInputChange }) {
   )
 }
 
+const calculateDueDate = (status: string) => {
+  if (status === '5') return ''
+
+  return new Date(
+    new Date().getTime() + 86400000 * DEFAULT_REVIEW_INTERVALS[status - 1]
+  ).toISOString()
+}
+
+const updateDueDate = (
+  status: string,
+  lastReviewedAt: string,
+  createdAt: string
+) => {
+  if (status === '5') return ''
+
+  return new Date(
+    new Date(lastReviewedAt || createdAt).getTime() +
+      86400000 * DEFAULT_REVIEW_INTERVALS[Number(status)]
+  ).toISOString()
+}
+
 export default function AddWordDialog({
   word,
   id,
@@ -107,13 +128,7 @@ export default function AddWordDialog({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastReviewedAt: '',
-        dueDate:
-          inputs.status !== '5'
-            ? new Date(
-                new Date().getTime() +
-                  86400000 * DEFAULT_REVIEW_INTERVALS[inputs.status - 1]
-              ).toISOString()
-            : '',
+        dueDate: calculateDueDate(inputs.status),
         reviewStatus: inputs.status
       })
       console.log('DatabaseService: create doc')
@@ -126,15 +141,11 @@ export default function AddWordDialog({
           word: inputs.word,
           meaning: inputs.meaning,
           updatedAt: new Date().toISOString(),
-          dueDate:
-            inputs.status !== '5'
-              ? new Date(
-                  new Date(
-                    wordDocument.lastReviewedAt || wordDocument.createdAt
-                  ).getTime() +
-                    86400000 * DEFAULT_REVIEW_INTERVALS[Number(inputs.status)]
-                ).toISOString()
-              : '',
+          dueDate: updateDueDate(
+            inputs.status,
+            wordDocument.lastReviewedAt,
+            wordDocument.createdAt
+          ),
           reviewStatus: inputs.status
         }
       })
@@ -143,7 +154,9 @@ export default function AddWordDialog({
   }
 
   const handleOpenChange = (open: boolean) => {
-    if (open && id) {
+    if (!open) return
+
+    if (id) {
       wordsCollection
         ?.findOne(id)
         .exec()
@@ -159,7 +172,7 @@ export default function AddWordDialog({
         })
     }
 
-    if (open && word) {
+    if (word) {
       const mainReading = word.japanese[0]
 
       handleInputChange({
@@ -177,18 +190,6 @@ export default function AddWordDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-20" />
         <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
-          {/* Buttons */}
-          <div className="flex justify-between">
-            <Dialog.Close asChild>
-              <button className="IconButton" aria-label="Close">
-                close
-              </button>
-            </Dialog.Close>
-            <Dialog.Close asChild onClick={handleWordSave}>
-              <button className="Button green">Save changes</button>
-            </Dialog.Close>
-          </div>
-
           {/* Word */}
           <fieldset className="min-w-0">
             <label
@@ -203,7 +204,7 @@ export default function AddWordDialog({
                 id="word"
                 contentEditable="true"
                 suppressContentEditableWarning
-                className="w-full overflow-hidden resize-y"
+                className="w-full overflow-hidden resize-y rounded px-2.5 py-1 bg-white bg-opacity-10"
                 onInput={(e) => handleInputChange({ word: e.target.innerText })}
               >
                 {id && wordDocument?.word}
@@ -229,7 +230,7 @@ export default function AddWordDialog({
             <div
               contentEditable="true"
               suppressContentEditableWarning
-              className="w-full overflow-hidden resize-y"
+              className="w-full overflow-hidden resize-y rounded px-2.5 py-1 bg-white bg-opacity-10"
               id="meaning"
               ref={meaningRef}
               onInput={(e) =>
@@ -272,7 +273,13 @@ export default function AddWordDialog({
           )}
 
           {/* Status */}
-          <div>
+          <fieldset className="Fieldset">
+            <label
+              className="text-sm font-medium text-white text-opacity-50"
+              htmlFor="meanings"
+            >
+              Status
+            </label>
             <ToggleGroup.Root
               className="flex flex-nowrap items-center gap-2"
               type="single"
@@ -283,7 +290,7 @@ export default function AddWordDialog({
                 handleInputChange({ status: value })
               }}
             >
-              {REVIEW_STATUS.map(({ status, label, icon }) => {
+              {REVIEW_STATUS.map(({ status, label }) => {
                 return (
                   <ToggleGroup.Item
                     key={status}
@@ -295,12 +302,28 @@ export default function AddWordDialog({
                     value={status}
                     aria-label={label}
                   >
-                    {/* {icon} */}
                     <span className="text-xs">{label}</span>
                   </ToggleGroup.Item>
                 )
               })}
             </ToggleGroup.Root>
+          </fieldset>
+
+          {/* Buttons */}
+          <div className="flex justify-between py-4 shadow-[rgb(255,255,255,0.1)_0px_-1px_0px]">
+            <Dialog.Close asChild>
+              <button
+                className="flex items-center text-sm text-white border border-white border-opacity-20 px-3 rounded-[3px] h-8 space-x-2"
+                aria-label="Close"
+              >
+                Cancel
+              </button>
+            </Dialog.Close>
+            <Dialog.Close asChild onClick={handleWordSave}>
+              <button className="inline-flex items-center justify-center text-sm text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2">
+                Save changes
+              </button>
+            </Dialog.Close>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

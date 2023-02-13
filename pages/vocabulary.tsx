@@ -1,256 +1,17 @@
-import { useState, useEffect, ReactNode } from 'react'
+import { useState, useEffect } from 'react'
 import { useRxCollection } from 'rxdb-hooks'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as Switch from '@radix-ui/react-switch'
 import {
-  DotsHorizontalIcon,
-  TrashIcon,
-  Pencil2Icon,
   PlusIcon,
-  ArchiveIcon
+  ArchiveIcon,
+  MagnifyingGlassIcon
 } from '@radix-ui/react-icons'
-import CalendarDaysIcon from '@heroicons/react/24/outline/CalendarDaysIcon'
-import HashtagIcon from '@heroicons/react/24/outline/HashtagIcon'
-import ArrowsUpDownIcon from '@heroicons/react/24/outline/ArrowsUpDownIcon'
 
 import AddWordDialog from '../components/AddWordDialog'
 import { REVIEW_STATUS } from '../components/AddWordDialog'
 
-const SORTING_OPTIONS = [
-  {
-    value: 'createdAt',
-    label: 'Date created',
-    icon: <CalendarDaysIcon className="h-4 w-4" />
-  },
-  {
-    value: 'word',
-    label: 'Alphabetical',
-    icon: <HashtagIcon className="h-4 w-4" />
-  }
-]
-const WORDS_LIMIT_OPTIONS = ['25', '50', '75', '100', '150', '200']
-
-function MenuTriggerButton({
-  label,
-  ariaLabel,
-  icon
-}: {
-  label?: string
-  ariaLabel?: string
-  icon?: ReactNode
-}) {
-  return (
-    <DropdownMenu.Trigger
-      aria-label={ariaLabel}
-      className={`
-      inline-flex items-center space-x-2
-      p-1.5 text-base h-7 rounded-[3px]
-      hover:bg-white hover:bg-opacity-5
-      data-[state=open]:bg-white data-[state=open]:bg-opacity-5
-      `}
-    >
-      {icon}
-      {label && <span>{label}</span>}
-    </DropdownMenu.Trigger>
-  )
-}
-
-function MenuRadioItem({
-  value,
-  icon,
-  label,
-  checkedValue
-}: {
-  value: string
-  icon?: ReactNode
-  label: string
-  checkedValue: string
-}) {
-  return (
-    <DropdownMenu.RadioItem
-      value={value}
-      className={`
-      flex items-center
-      mx-1 rounded-[3px] h-7
-      hover:bg-white hover:bg-opacity-10 cursor-pointer
-      ${checkedValue === value ? 'text-blue-300  ' : ''}
-      `}
-    >
-      <div className="ml-2.5 mr-1 flex items-center justify-center">{icon}</div>
-      <div className="ml-1.5 mr-3 flex-1">{label}</div>
-    </DropdownMenu.RadioItem>
-  )
-}
-
-function SortingMenu({
-  isAscending,
-  sortOption,
-  changeAscending,
-  changeSortOption
-}: {
-  isAscending: boolean
-  sortOption: string
-  changeAscending: (value: boolean) => void
-  changeSortOption: (value: string) => void
-}) {
-  return (
-    <DropdownMenu.Root modal={false}>
-      <MenuTriggerButton
-        label="Sort"
-        ariaLabel="Sorting options"
-        icon={<ArrowsUpDownIcon className="w-4 h-4" />}
-      />
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align="start"
-          sideOffset={5}
-          className={`
-          w-[230px] py-2 rounded bg-[rgb(37,37,37)]
-          text-sm text-white text-opacity-80
-          `}
-        >
-          <form
-            className={`
-            flex items-center justify-between mx-1
-            rounded-[3px] h-7 hover:bg-white hover:bg-opacity-10 cursor-pointer
-            `}
-          >
-            <label
-              htmlFor="ascending-mode"
-              className="ml-2.5 mr-1 flex-1 cursor-pointer"
-            >
-              Ascending
-            </label>
-            <Switch.Root
-              id="ascending-mode"
-              checked={isAscending}
-              onCheckedChange={changeAscending}
-              className={`
-              box-content relative
-              ml-1.5 mr-3 p-0.5  w-[26px] h-[14px] rounded-full shadow-sm
-              bg-[rgba(202,204,206,0.3)] data-[state=checked]:bg-[rgb(35,131,226)]
-              `}
-            >
-              <Switch.Thumb
-                className={`
-                block w-3.5 h-3.5 bg-white rounded-full shadow-sm
-                translate-x-0 data-[state=checked]:translate-x-[12px]
-                `}
-              />
-            </Switch.Root>
-          </form>
-
-          <DropdownMenu.Separator className="my-2 h-[1px] bg-white bg-opacity-20" />
-
-          <DropdownMenu.RadioGroup
-            value={sortOption}
-            onValueChange={changeSortOption}
-          >
-            {SORTING_OPTIONS.map((option) => (
-              <MenuRadioItem
-                key={option.value}
-                value={option.value}
-                icon={option.icon}
-                label={option.label}
-                checkedValue={sortOption}
-              />
-            ))}
-          </DropdownMenu.RadioGroup>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
-  )
-}
-
-function ShowWordsMenu({
-  wordsNumber,
-  changeOffset,
-  changeWordsNumber
-}: {
-  wordsNumber: string
-  changeOffset: (value: number) => void
-  changeWordsNumber: (value: string) => void
-}) {
-  return (
-    <DropdownMenu.Root modal={false}>
-      <MenuTriggerButton
-        label={`Show: ${wordsNumber}`}
-        ariaLabel="Show words"
-      />
-
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align="start"
-          sideOffset={5}
-          className={`
-          w-[230px] py-2 rounded bg-[rgb(37,37,37)]
-          text-sm text-white text-opacity-80
-          `}
-        >
-          <DropdownMenu.RadioGroup
-            value={wordsNumber}
-            onValueChange={(value) => {
-              changeOffset(0)
-              changeWordsNumber(value)
-            }}
-          >
-            {WORDS_LIMIT_OPTIONS.map((option) => (
-              <MenuRadioItem
-                key={option}
-                value={option}
-                label={option}
-                checkedValue={wordsNumber}
-              />
-            ))}
-          </DropdownMenu.RadioGroup>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
-  )
-}
-
-function MoreOptionsMenu({ deleteWord, doc }) {
-  return (
-    <DropdownMenu.Root modal={false}>
-      <MenuTriggerButton
-        ariaLabel="More options"
-        icon={<DotsHorizontalIcon className="w-5 h-5" />}
-      />
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align="end"
-          sideOffset={5}
-          className={`
-          w-[230px] py-2 rounded bg-[rgb(37,37,37)]
-          text-sm text-white text-opacity-80
-          `}
-        >
-          <AddWordDialog id={doc.id}>
-            <div className="mx-1 rounded-[3px] h-7 flex items-center hover:bg-white hover:bg-opacity-10 cursor-pointer">
-              <div className="ml-2.5 mr-1 flex items-center justify-center">
-                <Pencil2Icon className="w-4 h-4" />
-              </div>
-              <div className="ml-1.5 mr-3">Edit</div>
-            </div>
-          </AddWordDialog>
-          <div
-            className={`
-            flex items-center
-            mx-1 rounded-[3px] h-7
-           hover:bg-white hover:bg-opacity-10 cursor-pointer
-            `}
-            onClick={() => deleteWord(doc.id)}
-          >
-            <div className="ml-2.5 mr-1 flex items-center justify-center">
-              <TrashIcon className="w-4 h-4" />
-            </div>
-            <div className="ml-1.5 mr-3">Delete</div>
-          </div>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
-  )
-}
+import SortingMenu from '../components/SortingMenu'
+import ShowWordsMenu from '../components/ShowWordsMenu'
+import MoreOptionsMenu from '../components/MoreOptionsMenu'
 
 function VocabularyList({ wordDocuments, deleteWord }) {
   return (
@@ -372,6 +133,22 @@ export default function Vocabulary() {
           changeOffset={setWordDocumentsOffset}
           changeWordsNumber={setShowWords}
         />
+
+        <div className="relative w-full">
+          <input
+            type="text"
+            name="search"
+            defaultValue={''}
+            className="block w-full p-2 pl-10 text-base bg-[color:rgb(37,37,37)] rounded"
+            placeholder="Search"
+            required
+          />
+          <div className="absolute inset-y-0 left-0">
+            <button type="submit" className="p-2 hover:text-red-400 transition">
+              <MagnifyingGlassIcon className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <VocabularyList wordDocuments={wordDocuments} deleteWord={deleteWord} />

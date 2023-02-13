@@ -5,9 +5,13 @@ import type { AppProps } from 'next/app'
 import type { RxDatabase } from 'rxdb'
 import type { NextPageWithLayout } from '../lib/types'
 
-import Layout from '../components/Layout'
+import Layout from '../layouts/Layout'
 import { get } from '../lib/database'
 import '../styles/globals.css'
+
+// import { Inter } from '@next/font/google'
+
+// const inter = Inter({ subsets: ['latin'] })
 
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout
