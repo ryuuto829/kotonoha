@@ -1,109 +1,19 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { tokenize, isKanji } from 'wanakana'
 import type { FormEvent, ReactNode } from 'react'
 
-import getKanjisFromText from '../lib/getKanjisFromText'
-import { BackspaceIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
 
-const DICTIONARY_SEARCH_URL = '/dictionary'
-const DICTIONARY_KANJI_URL = '/dictionary/kanji'
-const DICTIONARY_KANJI_PATH = '/dictionary/kanji/[kanji]'
+function getKanjiListFromText(text?: string) {
+  if (!text) return []
 
-function SearchForm({
-  currentSearchKeyword,
-  handleSearchFormSubmit
-}: {
-  currentSearchKeyword: string | null
-  handleSearchFormSubmit: (event: FormEvent) => void
-}) {
-  return (
-    <form
-      onSubmit={handleSearchFormSubmit}
-      onReset={(event) => {
-        // Override the default value of input when resetting form
-        const input = event.currentTarget.querySelector("[name='search'")
-        input?.setAttribute('value', '')
-      }}
-    >
-      <div className="relative">
-        <input
-          type="text"
-          name="search"
-          defaultValue={currentSearchKeyword || ''}
-          className="block w-full p-2 pr-20 text-base bg-[color:rgb(37,37,37)] rounded"
-          placeholder="Search a Japanese or English word"
-          required
-        />
-        <div className="absolute inset-y-0 right-0">
-          <button type="reset" className="p-2 hover:text-red-400 transition">
-            <BackspaceIcon className="w-6 h-6" />
-          </button>
-          <button type="submit" className="p-2 hover:text-red-400 transition">
-            <MagnifyingGlassIcon className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-    </form>
-  )
-}
+  // ex.: '1aあ冷静' -> ['冷', '静']
+  const kanjiList = tokenize(text).filter(isKanji).join('').split('')
 
-function ResultsContextToggle({
-  currentSearchKeyword,
-  wordDetails,
-  kanjiDetails
-}: {
-  currentSearchKeyword: string | null
-  wordDetails: string | null
-  kanjiDetails: string | null
-}) {
-  const kanjiList =
-    (currentSearchKeyword && getKanjisFromText(currentSearchKeyword)) || null
-
-  return (
-    <div className="flex items-center py-4">
-      {/* All results context */}
-      {currentSearchKeyword && (
-        <Link
-          href={`${DICTIONARY_SEARCH_URL}?q=${currentSearchKeyword}`}
-          className={`inline-flex items-center h-9 px-3 text-sm text-white text-center rounded ${
-            currentSearchKeyword && !wordDetails && !kanjiDetails
-              ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
-              : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
-          }`}
-        >
-          Search results
-        </Link>
-      )}
-
-      {/* Kanji details context */}
-      {kanjiList &&
-        kanjiList.map((kanji) => (
-          <Link
-            key={kanji}
-            href={`${DICTIONARY_KANJI_URL}/${kanji}`}
-            className={`inline-flex items-center h-9 px-3 ml-1.5 text-lg text-white text-center rounded ${
-              kanjiDetails === kanji
-                ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
-                : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
-            }`}
-          >
-            {kanji}
-          </Link>
-        ))}
-
-      {/* Word details context */}
-      {wordDetails && (
-        <Link
-          href={`${DICTIONARY_SEARCH_URL}?q=${currentSearchKeyword}&details=${wordDetails}`}
-          className="inline-flex items-center h-9 px-3 ml-1.5 text-sm text-white text-center rounded shadow-md bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]"
-        >
-          <span className="pr-1">Details for</span>
-          <span className="text-lg">{wordDetails}</span>
-        </Link>
-      )}
-    </div>
-  )
+  // remove duplicates
+  return [...new Set(kanjiList)]
 }
 
 export default function DictionaryLayout({
@@ -112,54 +22,83 @@ export default function DictionaryLayout({
   children: ReactNode
 }) {
   const router = useRouter()
+  const searchKeyword = router.query?.q?.toString()
+  const searchKanji = router.query?.kanji?.toString()
 
-  // Current search context from URL
-  const [searchKeyword, wordDetails, kanjiDetails] = [
-    (router.pathname === DICTIONARY_SEARCH_URL &&
-      router.query?.q?.toString()) ||
-      null,
-    (router.pathname === DICTIONARY_SEARCH_URL &&
-      router.query?.details?.toString()) ||
-      null,
-    (router.pathname === DICTIONARY_KANJI_PATH &&
-      router.query?.kanji?.toString()) ||
-      null
+  const [keyword, setKeyword] = useState(searchKeyword)
+
+  const searchContext = [
+    {
+      url: `/dictionary?q=${keyword}`,
+      isActive: keyword && !searchKanji,
+      label: 'Search results'
+    },
+    ...getKanjiListFromText(keyword).map((kanji) => ({
+      url: `/dictionary/kanji/${kanji}`,
+      isActive: kanji === searchKanji,
+      label: kanji
+    }))
   ]
-
-  const [currentSearchKeyword, setCurrentSearchKeyword] =
-    useState(searchKeyword)
 
   useEffect(() => {
     // Persist search context history
     if (searchKeyword) {
-      setCurrentSearchKeyword(searchKeyword)
+      setKeyword(searchKeyword)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router])
+  }, [searchKeyword])
 
-  const handleSearchFormSubmit = (event: FormEvent) => {
-    event.preventDefault()
+  const handleSearchFormSubmit = (e: FormEvent) => {
+    e.preventDefault()
 
-    const formData = new FormData(event.target as HTMLFormElement)
-    const searchInput = formData.get('search')
+    const formData = new FormData(e.target as HTMLFormElement)
+    const searchInputData = formData.get('search')
 
-    router.push(`${DICTIONARY_SEARCH_URL}?q=${searchInput}`, undefined, {
+    router.push(`/dictionary?q=${searchInputData}`, undefined, {
       shallow: true
     })
   }
 
   return (
     <>
-      {/* Search by context */}
-      <SearchForm
-        handleSearchFormSubmit={handleSearchFormSubmit}
-        currentSearchKeyword={currentSearchKeyword}
-      />
-      <ResultsContextToggle
-        currentSearchKeyword={currentSearchKeyword}
-        wordDetails={wordDetails}
-        kanjiDetails={kanjiDetails}
-      />
+      <div className="flex flex-col space-y-5">
+        {/* Search form */}
+        <form onSubmit={handleSearchFormSubmit} className="relative">
+          <input
+            type="search"
+            name="search"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck="false"
+            autoComplete="off"
+            defaultValue={keyword || ''}
+            className="block w-full h-10 pl-9 pr-4 placeholder:text-white/40 bg-transparent border border-white/20 rounded-md outline-none"
+            placeholder="Search a Japanese or English word"
+            required
+          />
+          <div className="absolute inset-y-0 left-0 flex items-center justify-center w-9 text-white/40">
+            <MagnifyingGlassIcon className="w-5 h-5" />
+          </div>
+        </form>
+
+        {/* Search context */}
+        {keyword && (
+          <div className="flex items-center flex-wrap gap-2">
+            {searchContext.map((context) => (
+              <Link
+                key={context.label}
+                href={context.url}
+                className={`inline-flex items-center justify-center h-8 px-3 text-sm text-white text-center whitespace-nowrap rounded-lg ${
+                  context.isActive
+                    ? 'bg-[rgb(35,131,226)] hover:bg-[rgb(0,117,211)]'
+                    : 'border border-white border-opacity-20 hover:bg-white hover:bg-opacity-5'
+                }`}
+              >
+                {context.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Context pages */}
       {children}

@@ -5,9 +5,9 @@ import type { AppProps } from 'next/app'
 import type { RxDatabase } from 'rxdb'
 import type { NextPageWithLayout } from '../lib/types'
 
+import '../styles/globals.css'
 import Layout from '../layouts/Layout'
 import { get } from '../lib/database'
-import '../styles/globals.css'
 
 // import { Inter } from '@next/font/google'
 
