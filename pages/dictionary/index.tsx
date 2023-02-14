@@ -1,53 +1,13 @@
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useMutation } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import type { ReactElement, ReactNode } from 'react'
-import type { WordReading, WordMeaning, WordResult } from '../../lib/types'
+import { MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons'
+import type { QueryFunctionContext } from '@tanstack/react-query'
 
-import ArrowLongRightIcon from '@heroicons/react/24/outline/ArrowLongRightIcon'
+import type { WordMeaning, WordResult } from '../../lib/types'
 import DictionaryLayout from '../../layouts/DictionaryLayout'
 import AddWordDialog from '../../components/AddWordDialog'
-
-function WordReadings({ readings }: { readings: WordReading[] }) {
-  return (
-    <dt className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-      {readings.map(({ word, reading }, index) => {
-        return (
-          <span key={index}>
-            {index == 1 && '、 '}
-            <span className={index === 0 ? '' : 'text-gray-400'}>
-              {index > 1 && '、 '}
-              <span>{word || reading}</span>
-              {word && <span>{` 【${reading}】`}</span>}
-            </span>
-          </span>
-        )
-      })}
-    </dt>
-  )
-}
-
-function WordTags({ isCommon, jlpt }: { isCommon: boolean; jlpt: string[] }) {
-  return (
-    <div className="inline-flex items-center">
-      {isCommon && (
-        <abbr className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-          common
-        </abbr>
-      )}
-      {jlpt?.map((label) => (
-        <abbr
-          key={label}
-          title="Japanese-Language Proficiency Test"
-          className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 no-underline"
-        >
-          {label}
-        </abbr>
-      ))}
-    </div>
-  )
-}
 
 export function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
   let currentPartOfSpeech: string
@@ -56,11 +16,6 @@ export function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
     (list, meaning, index) => {
       const partOfSpeech = meaning.parts_of_speech.join(', ')
       const listItems = [...list]
-
-      // Remove wikipedia definition from the list
-      if (partOfSpeech === 'Wikipedia definition') {
-        return listItems
-      }
 
       // 1. Adding a part of the speech info above definitions of the same type
       if (currentPartOfSpeech !== partOfSpeech) {
@@ -122,138 +77,195 @@ export function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
   return <dd>{definitionList}</dd>
 }
 
-function SearchResults({
-  words,
-  currentSearchWord
-}: {
-  words: WordResult[]
-  currentSearchWord: string
-}) {
-  return (
-    <div className="mt-5 rounded-xl divide-y divide-white divide-opacity-20">
-      {words.map((word) => {
-        return (
-          <div key={word.slug} className="block w-full py-5">
-            <dl className="grid gap-4">
-              <WordReadings readings={word.japanese} />
+function createWordTagsList(isCommon: boolean, jlpt: string[]) {
+  const commonTag = isCommon
+    ? [
+        {
+          label: 'common',
+          title: 'Common word',
+          color: 'bg-[rgb(43,89,63)]'
+        }
+      ]
+    : []
+  const jlptTags = jlpt.length
+    ? jlpt.map((label) => ({
+        label: label,
+        title: 'Japanese-Language Proficiency Test',
+        color: 'bg-[rgb(40,69,108)]'
+      }))
+    : []
 
-              {(word.is_common || word.jlpt.length > 0) && (
-                <WordTags isCommon={word.is_common} jlpt={word.jlpt} />
-              )}
-
-              <WordMeanings meanings={word.senses} />
-            </dl>
-            <Link
-              href={`/dictionary?q=${currentSearchWord}&details=${word.slug}`}
-              className="inline-flex items-center mt-2 text-white text-opacity-80 text-sm rounded h-7 px-2 hover:bg-white hover:bg-opacity-5"
-            >
-              <span className="mr-2">More Details</span>
-              <ArrowLongRightIcon className="h-5 w-5" />
-            </Link>
-          </div>
-        )
-      })}
-    </div>
-  )
+  return [...commonTag, ...jlptTags]
 }
 
-function WordDetails({ word }: { word: WordResult }) {
-  const [mainReading, ...otherReadings] = word.japanese
+async function fetchWords({
+  queryKey,
+  pageParam = 1
+}: QueryFunctionContext<[string, string | null | undefined]>) {
+  const [_key, searchKeyword] = queryKey
 
-  return (
-    <div className="grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
-      {/* Word literal, reading, jlpt and common tags */}
-      <div>
-        <div className="flex items-center space-x-6">
-          <h1 className="text-4xl">
-            {mainReading.word || mainReading.reading}
-          </h1>
+  if (!searchKeyword) return null
 
-          {(word.is_common || word.jlpt.length > 0) && (
-            <WordTags isCommon={word.is_common} jlpt={word.jlpt} />
-          )}
-        </div>
-
-        {mainReading.word && <div className="mt-2">{mainReading.reading}</div>}
-      </div>
-
-      {/* Meanings */}
-      <WordMeanings meanings={word.senses} />
-
-      {/* Different forms */}
-      {otherReadings.length > 0 && (
-        <div>
-          <h2 className="text-sm font-medium text-white text-opacity-50">
-            Other forms
-          </h2>
-          <div className="flex items-center mt-2 space-x-2">
-            {otherReadings.map((readings, index) => {
-              return (
-                <Link
-                  key={index}
-                  href={`/dictionary?q=${readings.word || readings.reading}`}
-                  className="inline-flex border border-white border-opacity-20 px-4 py-2 rounded hover:bg-white hover:bg-opacity-5"
-                >
-                  {readings.word
-                    ? `${readings.word} 【${readings.reading}】`
-                    : readings.reading}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+  const response = await fetch(
+    `/api/dictionary?keyword=${searchKeyword}&page=${pageParam}`
   )
+  const json = await response.json()
+
+  const data = {
+    // Jisho API returns a results array shaped [ oldWord, ...newWords ]
+    // for all pages except the first one. We should remove the first element
+    // to avoid duplication when rendering all search results
+    data: pageParam === 1 ? json.data : json.data.slice(1),
+
+    // Provide the current cursor for `getNextPageParam()`
+    pageParam
+  }
+
+  return data as { data: WordResult[]; pageParam: number }
 }
 
 export default function Dictionary() {
   const router = useRouter()
-  const { q: currentSearchWord, details: currentSelectedWord } = router.query
+  const searchKeyword = router.query?.q?.toString()
 
-  const searchResults = useMutation({
-    mutationFn: async (keyword: string) => {
-      if (!keyword) return null
-
-      const response = await fetch(`/api/dictionary?keyword=${keyword}`)
-      const { data } = await response.json()
-
-      return data as WordResult[]
+  const searchQuery = useInfiniteQuery({
+    queryKey: ['words', searchKeyword],
+    queryFn: fetchWords,
+    getNextPageParam: (lastPage) => {
+      // Jisho API doesn't provide information about the page cursor
+      // determining if there is more data to load,
+      // so we should to stop fetching when API returns []
+      if (lastPage && lastPage?.data.length !== 0) {
+        return lastPage.pageParam + 1
+      }
     }
   })
-
-  useEffect(() => {
-    if (currentSearchWord) {
-      searchResults.mutate(currentSearchWord.toString())
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSearchWord])
-
-  const details = currentSelectedWord
-    ? searchResults.data?.find((word) => word.slug === currentSelectedWord)
-    : null
 
   return (
     <>
       {/* Loading */}
-      {searchResults.isLoading && <div>Loading ...</div>}
+      {searchQuery.isLoading && <div>Loading ...</div>}
 
-      {/* All search results */}
-      {!currentSelectedWord && currentSearchWord && searchResults.data && (
-        <SearchResults
-          words={searchResults.data}
-          currentSearchWord={currentSearchWord.toString()}
-        />
+      {!searchKeyword && (
+        <div className="w-full max-w-md h-full mx-auto flex items-center space-x-4 text-white/40">
+          <div className="flex-1">
+            <MagnifyingGlassIcon className="w-10 h-10" />
+          </div>
+          <span>
+            Start typing any Japanese text or English word in the search box
+            above to begin searching
+          </span>
+        </div>
       )}
 
-      {/* Word details */}
-      {details && <WordDetails word={details} />}
+      {/* Search results */}
+      {searchKeyword &&
+        searchQuery.data?.pages.length &&
+        searchQuery.data.pages.map((page) => {
+          if (!page) return null
 
-      {/* Modal */}
-      {details && (
-        <AddWordDialog word={details}>
-          <button>Add word</button>
-        </AddWordDialog>
+          return (
+            <div key={page.pageParam} className="divide-y divide-white/20">
+              {page.data.map((word) => {
+                const [mainReading, ...otherReadings] = word.japanese
+                const wordTags = createWordTagsList(word.is_common, word.jlpt)
+
+                return (
+                  <div key={word.slug} className="block w-full py-5">
+                    <dl className="grid gap-4">
+                      {/* Word literal, reading, tags & save */}
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-6">
+                            <h1 className="text-3xl">
+                              {mainReading.word || mainReading.reading}
+                            </h1>
+
+                            {wordTags.length !== 0 && (
+                              <div className="inline-flex items-center space-x-2">
+                                {wordTags.map((tag) => (
+                                  <abbr
+                                    key={tag.label}
+                                    title={tag.title}
+                                    className={`inline-flex items-center font-medium h-5 rounded-md px-[9px] text-xs no-underline bg-indigo-300 text-indigo-800`}
+                                  >
+                                    {tag.label}
+                                  </abbr>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <AddWordDialog word={word}>
+                            <button className="inline-flex items-center space-x-2 whitespace-nowrap rounded h-8 px-3 text-sm leading-5 border border-white/20 hover:bg-white/5 transition">
+                              <PlusIcon className="w-4 h-4" />
+                              <span>Save</span>
+                            </button>
+                          </AddWordDialog>
+                        </div>
+
+                        {mainReading.word && (
+                          <div className="mt-2">{mainReading.reading}</div>
+                        )}
+                      </div>
+
+                      {/* Meanings */}
+                      <WordMeanings meanings={word.senses} />
+
+                      {/* Different forms */}
+                      {otherReadings.length > 0 && (
+                        <div>
+                          <h2 className="text-sm font-medium text-white text-opacity-50">
+                            Other forms
+                          </h2>
+                          <div className="flex items-center mt-2 space-x-2">
+                            {otherReadings.map((readings, index) => {
+                              return (
+                                <Link
+                                  key={index}
+                                  href={`/dictionary?q=${
+                                    readings.word || readings.reading
+                                  }`}
+                                  className="inline-flex border border-white border-opacity-20 px-4 py-2 rounded hover:bg-white hover:bg-opacity-5"
+                                >
+                                  {readings.word
+                                    ? `${readings.word} 【${readings.reading}】`
+                                    : readings.reading}
+                                </Link>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+
+      {/* Load more */}
+      {searchKeyword && !searchQuery.isFetching && (
+        <div className="flex items-center justify-center">
+          {searchQuery.hasNextPage && (
+            <button
+              onClick={() => searchQuery.fetchNextPage()}
+              disabled={
+                !searchQuery.hasNextPage || searchQuery.isFetchingNextPage
+              }
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded h-8 px-3 text-sm leading-5	border border-white/20 hover:bg-white/5 transition`}
+            >
+              {searchQuery.isFetchingNextPage
+                ? 'Loading more...'
+                : searchQuery.hasNextPage && 'Load More'}
+            </button>
+          )}
+
+          {!searchQuery.hasNextPage && !searchQuery.isFetchingNextPage && (
+            <div>No more results to load</div>
+          )}
+        </div>
       )}
     </>
   )
