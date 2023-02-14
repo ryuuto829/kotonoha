@@ -5,7 +5,6 @@ import { ChevronDownIcon } from '@radix-ui/react-icons'
 import ArrowsUpDownIcon from '@heroicons/react/24/outline/ArrowsUpDownIcon'
 import CalendarDaysIcon from '@heroicons/react/24/outline/CalendarDaysIcon'
 import HashtagIcon from '@heroicons/react/24/outline/HashtagIcon'
-import theme from '../lib/theme'
 
 const SORTING_OPTIONS = [
   {
@@ -35,7 +34,7 @@ export default function SortingMenu({
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
         aria-label="Sorting options"
-        className={theme.menu.triggerButton}
+        className="inline-flex items-center space-x-2 p-1.5 text-base h-7 rounded-[3px] whitespace-nowrap hover:bg-white hover:bg-opacity-5 data-[state=open]:bg-white data-[state=open]:bg-opacity-5"
       >
         <ArrowsUpDownIcon className="w-4 h-4" />
         <span>Sort</span>
@@ -46,7 +45,7 @@ export default function SortingMenu({
         <DropdownMenu.Content
           align="start"
           sideOffset={5}
-          className={`${theme.menu.content} w-[230px]`}
+          className={`py-2 rounded bg-[rgb(37,37,37)] text-sm text-white text-opacity-80 w-[230px]`}
         >
           <form className="flex items-center justify-between mx-1 rounded-[3px] h-7 hover:bg-white hover:bg-opacity-10 cursor-pointer">
             <label
@@ -75,9 +74,9 @@ export default function SortingMenu({
               <DropdownMenu.RadioItem
                 key={value}
                 value={value}
-                className={theme.menu.menuItem({
-                  active: sortOption === value
-                })}
+                className={`flex items-center mx-1 rounded-[3px] h-7 hover:bg-white hover:bg-opacity-10 cursor-pointer ${
+                  sortOption === value ? 'text-blue-300' : ''
+                }`}
               >
                 <div className="ml-2.5 mr-1 flex items-center justify-center w-4 h-4">
                   {icon}
