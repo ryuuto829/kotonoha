@@ -149,7 +149,7 @@ export default function Kanji({
   const kanjiListByGrade = getKanjiListByGrade(kanji.grade)
 
   return (
-    <dl className="grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
+    <dl className="grid gap-4 mt-5">
       {/* Kanji literal */}
       <dt className="sr-only">Kanji literal</dt>
       <dd>

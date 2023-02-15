@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true
+  reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/vocabulary',
+        destination: '/vocabulary/all',
+        permanent: true
+      }
+    ]
+  }
   // async rewrites() {
   //   return [
   //     {

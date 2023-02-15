@@ -1,81 +1,13 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons'
 import type { QueryFunctionContext } from '@tanstack/react-query'
 
-import type { WordMeaning, WordResult } from '../../lib/types'
+import type { WordResult } from '../../lib/types'
 import DictionaryLayout from '../../layouts/DictionaryLayout'
 import AddWordDialog from '../../components/AddWordDialog'
-
-export function WordMeanings({ meanings }: { meanings: WordMeaning[] }) {
-  let currentPartOfSpeech: string
-
-  const definitionList = meanings.reduce<ReactNode[]>(
-    (list, meaning, index) => {
-      const partOfSpeech = meaning.parts_of_speech.join(', ')
-      const listItems = [...list]
-
-      // 1. Adding a part of the speech info above definitions of the same type
-      if (currentPartOfSpeech !== partOfSpeech) {
-        currentPartOfSpeech = partOfSpeech
-        listItems.push(
-          <p
-            key={index + 'p'}
-            className="text-sm font-medium text-white text-opacity-50 mt-1"
-          >
-            {partOfSpeech}
-          </p>
-        )
-      }
-
-      // 2. Adding definitions with all additional info
-      listItems.push(
-        <div
-          key={index + 'd'}
-          className="text-lg text-white text-opacity-80 mt-1"
-        >
-          <span>
-            {`${index + 1}. ${meaning.english_definitions.join(', ')}`}
-          </span>
-
-          {meaning.info.length > 0 && (
-            <span className="text-gray-500 text-sm">
-              {` - ${meaning.info.join(', ')}`}
-            </span>
-          )}
-
-          {meaning.tags.length > 0 && (
-            <span className="text-gray-500 text-sm">
-              {` ${meaning.tags.join(', ')}`}
-            </span>
-          )}
-
-          {meaning.restrictions.length > 0 && (
-            <span className="text-gray-500 text-sm">
-              {`. Only applies to ${meaning.restrictions.join(', ')}`}
-            </span>
-          )}
-
-          {meaning.see_also.length > 0 && (
-            <span className="text-gray-500 text-sm">
-              {`. See also `}
-              <a href="#" className="text-blue-400">
-                {meaning.see_also.join(', ')}
-              </a>
-            </span>
-          )}
-        </div>
-      )
-
-      return listItems
-    },
-    []
-  )
-
-  return <dd>{definitionList}</dd>
-}
 
 function createWordTagsList(isCommon: boolean, jlpt: string[]) {
   const commonTag = isCommon
@@ -210,7 +142,75 @@ export default function Dictionary() {
                       </div>
 
                       {/* Meanings */}
-                      <WordMeanings meanings={word.senses} />
+                      <dd>
+                        {word.senses.map((meaning, index) => {
+                          const partOfSpeech =
+                            meaning.parts_of_speech.join(', ')
+
+                          return (
+                            <>
+                              <p
+                                key={index + 'p'}
+                                className="text-sm font-medium text-white text-opacity-50 mt-1"
+                              >
+                                {partOfSpeech}
+                              </p>
+
+                              <div
+                                key={index + 'd'}
+                                className="text-lg text-white text-opacity-80 mt-1"
+                              >
+                                <span>
+                                  {`${
+                                    index + 1
+                                  }. ${meaning.english_definitions.join(', ')}`}
+                                </span>
+
+                                {meaning.info.length > 0 && (
+                                  <span className="text-gray-500 text-sm">
+                                    {` - ${meaning.info.join(', ')}`}
+                                  </span>
+                                )}
+
+                                {meaning.tags.length > 0 && (
+                                  <span className="text-gray-500 text-sm">
+                                    {` ${meaning.tags.join(', ')}`}
+                                  </span>
+                                )}
+
+                                {meaning.restrictions.length > 0 && (
+                                  <span className="text-gray-500 text-sm">
+                                    {`. Only applies to ${meaning.restrictions.join(
+                                      ', '
+                                    )}`}
+                                  </span>
+                                )}
+
+                                {meaning.see_also.length > 0 && (
+                                  <span className="text-gray-500 text-sm">
+                                    {`. See also `}
+                                    <a href="#" className="text-blue-400">
+                                      {meaning.see_also.join(', ')}
+                                    </a>
+                                  </span>
+                                )}
+
+                                {meaning.links.length > 0 && (
+                                  <span className="text-gray-500 text-sm">
+                                    {' '}
+                                    <a
+                                      href={meaning.links[0].url}
+                                      className="text-blue-400"
+                                    >
+                                      Read on Wikipedia
+                                    </a>
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )
+                        })}
+                      </dd>
 
                       {/* Different forms */}
                       {otherReadings.length > 0 && (
@@ -244,6 +244,7 @@ export default function Dictionary() {
             </div>
           )
         })}
+      {/* END of Search results */}
 
       {/* Load more */}
       {searchKeyword && !searchQuery.isFetching && (

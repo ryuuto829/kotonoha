@@ -28,7 +28,7 @@ export type WordMeaning = {
   antonyms: string[]
   english_definitions: string[]
   info: string[]
-  links: string[]
+  links: { text: string; url: string }[]
   parts_of_speech: string[]
   restrictions: string[]
   see_also: string[]
