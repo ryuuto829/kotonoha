@@ -8,7 +8,7 @@ import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
-import { wordSchema } from './schema'
+import { wordSchema, userSchema } from './schema'
 
 // removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
@@ -38,6 +38,9 @@ const _create = async () => {
   await db.addCollections({
     words: {
       schema: wordSchema
+    },
+    users: {
+      schema: userSchema
     }
   })
 
