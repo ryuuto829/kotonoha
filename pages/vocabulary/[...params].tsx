@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useRxCollection } from 'rxdb-hooks'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useRxCollection } from 'rxdb-hooks'
 import {
   PlusIcon,
   ArchiveIcon,
   MagnifyingGlassIcon,
   ArrowRightIcon,
   ReloadIcon,
-  Cross1Icon
+  Cross1Icon,
+  CheckIcon,
+  ArrowDownIcon
 } from '@radix-ui/react-icons'
 import * as Progress from '@radix-ui/react-progress'
 
@@ -17,49 +20,16 @@ import { REVIEW_STATUS } from '../../components/AddWordDialog'
 import SortingMenu from '../../components/SortingMenu'
 import ShowWordsMenu from '../../components/ShowWordsMenu'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
-import Link from 'next/link'
 
-function VocabularyList({ wordDocuments, deleteWord }) {
-  return (
-    <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20">
-      <div className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2">
-        <div>Word</div>
-        <div>Meaning</div>
-        <div>Status</div>
-      </div>
-      {wordDocuments &&
-        wordDocuments.map((doc) => (
-          <div
-            key={doc.id}
-            className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4"
-          >
-            <div className="text-lg">{doc.word}</div>
-            <div className="text-sm">{doc.meaning}</div>
-            <div>
-              {REVIEW_STATUS.filter(
-                (el) => el.status === doc.reviewStatus?.toString()
-              ).map((el) => (
-                <div
-                  key={el.label}
-                  className="inline-flex items-center space-x-2"
-                >
-                  {el.icon}
-                  <span className="text-xs">{el.label}</span>
-                </div>
-              ))}
-            </div>
-            <div>
-              <MoreOptionsMenu deleteWord={deleteWord} doc={doc} />
-            </div>
-          </div>
-        ))}
-    </div>
-  )
-}
+import { updateDueDate } from '../../utils'
+
+const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
 
 export default function Vocabulary() {
   const router = useRouter()
   const wordsCollection = useRxCollection('words')
+
+  const [srs, review] = router.query?.params || []
 
   const [wordDocuments, setWordDocuments] = useState()
   const [showWords, setShowWords] = useState('25')
@@ -69,20 +39,20 @@ export default function Vocabulary() {
   const [wordDocumentsCount, setWordDocumentsCount] = useState(0)
 
   const [progress, setProgress] = useState(0)
-  const [wordIndex, setWordIndex] = useState(0)
+  const [documentIndexes, setDocumentIndexes] = useState()
   const [showCardBack, setShowCardBack] = useState(false)
 
   useEffect(() => {
     let querySub: any
 
-    if (wordsCollection && router.query.params) {
+    if (wordsCollection && srs && !review) {
       const query = wordsCollection
         .find(
-          router.query.params[0] === 'srs'
+          srs === 'srs'
             ? {
                 selector: {
                   dueDate: {
-                    $gte: new Date().toISOString()
+                    $lte: new Date().toISOString().split('T')[0]
                   }
                 }
               }
@@ -95,8 +65,16 @@ export default function Vocabulary() {
       querySub = query.$.subscribe((results) => {
         console.log(results)
 
-        wordsCollection.count().exec().then(setWordDocumentsCount)
-        setWordDocuments(results)
+        if (results) {
+          // 1. Update all documents count
+          wordsCollection.count().exec().then(setWordDocumentsCount)
+
+          // 2. Set document indexes for reviews
+          setDocumentIndexes([...Array.from(Array(results.length).keys())])
+
+          // 3. Update documents
+          setWordDocuments(results)
+        }
       })
     }
 
@@ -107,7 +85,8 @@ export default function Vocabulary() {
     isAscending,
     showWords,
     wordDocumentsOffset,
-    router.query
+    review,
+    srs
   ])
 
   const deleteWord = async (id) => {
@@ -117,107 +96,194 @@ export default function Vocabulary() {
     console.log('DatabaseService: delete doc')
   }
 
-  if (router.query.params[1] === 'review' && wordDocuments) {
+  const skipCard = () => {
+    setShowCardBack(false)
+    setProgress(progress + 1)
+  }
+
+  const flipCard = () => {
+    setShowCardBack(true)
+  }
+
+  const reviewCardAgain = () => {
+    if (!documentIndexes) return
+
+    const indexes = [...documentIndexes]
+
+    // push to the end of the stack
+    const [currentIndex] = indexes.splice(progress, 1)
+    indexes.push(currentIndex)
+
+    setDocumentIndexes(indexes)
+    setShowCardBack(false)
+  }
+
+  const forgetCard = async () => {
+    // db: update dueDate
+    if (!wordDocuments || !documentIndexes) return
+
+    const doc = wordDocuments[documentIndexes[progress]]
+    const today = new Date().toISOString()
+
+    await doc.update({
+      $set: {
+        lastReviewedAt: today,
+        dueDate: updateDueDate(
+          doc.reviewStatus,
+          today,
+          DEFAULT_REVIEW_INTERVALS
+        )
+      }
+    })
+
+    setShowCardBack(false)
+    setProgress(progress + 1)
+  }
+
+  const rememberCard = async () => {
+    if (!wordDocuments || !documentIndexes) return
+
+    // db: update dueDate and status
+    const doc = wordDocuments[documentIndexes[progress]]
+    const today = new Date().toISOString()
+
+    if (srs === 'all') {
+      await doc.update({
+        $set: {
+          lastReviewedAt: today
+        }
+      })
+    }
+
+    if (srs === 'srs') {
+      const newStatus = doc.reviewStatus < 5 && doc.reviewStatus + 1
+
+      await doc.update({
+        $set: {
+          lastReviewedAt: today,
+          dueDate: newStatus
+            ? updateDueDate(newStatus, today, DEFAULT_REVIEW_INTERVALS)
+            : null,
+          reviewStatus: newStatus || doc.reviewStatus
+        }
+      })
+    }
+
+    setShowCardBack(false)
+    setProgress(progress + 1)
+
+    console.log('DatabaseService: update remebered card')
+  }
+
+  const goToNextPage = () => {
+    const count = wordDocumentsOffset + Number(showWords)
+
+    if (count <= wordDocumentsCount) {
+      setWordDocumentsOffset(count)
+    }
+  }
+
+  const goToPreviousPage = () => {
+    const count = wordDocumentsOffset - Number(showWords)
+
+    if (count >= 0) {
+      setWordDocumentsOffset(count)
+    }
+  }
+
+  // REVIEW PAGE
+  if (review && documentIndexes?.length) {
     return (
       <div className="relative h-full">
-        <div className="flex items-center justify-end">{`${wordIndex} / ${wordDocuments.length}`}</div>
+        <div className="flex items-center justify-end">{`${progress} / ${documentIndexes.length}`}</div>
         <Progress.Root
           className="relative overflow-hidden bg-black rounded-full w-full h-2"
           value={progress}
-          max={wordDocuments.length || 0}
+          max={documentIndexes.length || 0}
         >
           <Progress.Indicator
             className="bg-white w-full h-full transition"
             style={{
               transform: `translateX(-${
-                100 - (100 / wordDocuments.length) * progress
+                100 - (100 / documentIndexes.length) * progress
               }%)`
             }}
           />
         </Progress.Root>
 
-        {!showCardBack && (
-          <>
-            <div>{wordDocuments[wordIndex].word}</div>
-            <div className="flex items-center space-x-2">
-              <button
-                className="inline-flex"
-                onClick={() => {
-                  setShowCardBack(false)
-                  setWordIndex(wordIndex + 1)
-                  setProgress(progress + 1)
-                }}
-              >
-                Skip
-              </button>
-              <button
-                className="inline-flex"
-                onClick={() => setShowCardBack(true)}
-              >
-                Flip
-              </button>
+        {progress < documentIndexes.length && documentIndexes && (
+          <div className="h-full flex flex-col items-center gap-5">
+            <div className="h-[calc((100vh-600px)*.3)]"></div>
+            <div className="text-lg p-7">
+              {wordDocuments[documentIndexes[progress]].word}
             </div>
+            {!showCardBack && (
+              <button
+                className="inline-flex items-center space-x-2"
+                onClick={flipCard}
+              >
+                <ArrowDownIcon className="w-5 h-5" />
+                <span>Show meaning</span>
+              </button>
+            )}
+            <div className={`p-7 ${showCardBack ? '' : 'invisible'}`}>
+              {wordDocuments[documentIndexes[progress]].meaning}
+            </div>
+          </div>
+        )}
+
+        {progress === documentIndexes.length && (
+          <>
+            <div>No more cards left.</div>
+            <Link href="/vocabulary/all">Back to vocab</Link>
           </>
         )}
 
-        {showCardBack && (
-          <>
-            <div>{wordDocuments[wordIndex].word}</div>
-            <div>{wordDocuments[wordIndex].meaning}</div>
-            <div className="flex items-center space-x-2 absolute bottom-0 w-full">
+        {progress !== documentIndexes.length && (
+          <div className="flex items-center absolute bottom-0 w-full h-9">
+            <div className="flex items-center space-x-2 z-20">
               <button
                 className="inline-flex items-center space-x-2"
-                onClick={() => {
-                  setShowCardBack(false)
-                  setWordIndex(wordIndex + 1)
-                  setProgress(progress + 1)
-                }}
+                onClick={skipCard}
               >
                 <span>Skip</span>
                 <ArrowRightIcon className="w-5 h-5" />
               </button>
-
               <button
                 className="inline-flex items-center space-x-2"
-                onClick={() => {
-                  // push to the end
-                }}
+                onClick={reviewCardAgain}
               >
                 <span>Again</span>
                 <ReloadIcon className="w-5 h-5" />
               </button>
-              <button
-                className="inline-flex items-center space-x-2 border border-white/40 rounded-full px-3 py-2"
-                onClick={() => {
-                  // db: update dueDate
+            </div>
 
-                  setShowCardBack(false)
-                  setWordIndex(wordIndex + 1)
-                  setProgress(progress + 1)
-                }}
-              >
-                <Cross1Icon className="w-5 h-5" />
-                <span>Forgot</span>
-              </button>
+            <div className="flex justify-center w-full -ml-[135px] space-x-4">
+              {srs === 'srs' && (
+                <button
+                  className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-white/10 text-[#f1f1f1]"
+                  onClick={forgetCard}
+                >
+                  <Cross1Icon className="w-5 h-5" />
+                  <span>Forgot</span>
+                </button>
+              )}
               <button
-                className="inline-flex"
-                onClick={() => {
-                  // db: update dueDate and status
-
-                  setShowCardBack(false)
-                  setWordIndex(wordIndex + 1)
-                  setProgress(progress + 1)
-                }}
+                className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-[#f1f1f1] text-[#0f0f0f]"
+                onClick={rememberCard}
               >
-                remember
+                <CheckIcon className="w-5 h-5" />
+                <span>Remembered</span>
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     )
   }
+  // END OF REVIEW PAGE
 
+  // VOCABULARY PAGE
   return (
     <>
       {/* Tabs, add & review */}
@@ -255,10 +321,13 @@ export default function Vocabulary() {
               <span>Add word</span>
             </button>
           </AddWordDialog>
-          <button className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2">
+          <Link
+            href={`${srs}/review`}
+            className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
+          >
             <ArchiveIcon className="w-4 h-4" />
-            <Link href={`${router.asPath}/review`}>Review</Link>
-          </button>
+            <span>Review</span>
+          </Link>
         </div>
       </div>
 
@@ -293,31 +362,45 @@ export default function Vocabulary() {
         </div>
       </div>
 
-      <VocabularyList wordDocuments={wordDocuments} deleteWord={deleteWord} />
+      {/* Vocab list */}
+      <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20">
+        <div className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2">
+          <div>Word</div>
+          <div>Meaning</div>
+          <div>Status</div>
+        </div>
+        {wordDocuments &&
+          wordDocuments.map((doc) => (
+            <div
+              key={doc.id}
+              className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4"
+            >
+              <div className="text-lg">{doc.word}</div>
+              <div className="text-sm">{doc.meaning}</div>
+              <div>
+                {REVIEW_STATUS.filter(
+                  (el) => el.status === doc.reviewStatus?.toString()
+                ).map((el) => (
+                  <div
+                    key={el.label}
+                    className="inline-flex items-center space-x-2"
+                  >
+                    {el.icon}
+                    <span className="text-xs">{el.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <MoreOptionsMenu deleteWord={deleteWord} doc={doc} />
+              </div>
+            </div>
+          ))}
+      </div>
 
+      {/* Pagination */}
       <div>
-        <button
-          onClick={() => {
-            const count = wordDocumentsOffset - Number(showWords)
-
-            if (count >= 0) {
-              setWordDocumentsOffset(count)
-            }
-          }}
-        >
-          Prev page
-        </button>
-        <button
-          onClick={() => {
-            const count = wordDocumentsOffset + Number(showWords)
-
-            if (count <= wordDocumentsCount) {
-              setWordDocumentsOffset(count)
-            }
-          }}
-        >
-          Next page
-        </button>
+        <button onClick={goToPreviousPage}>Prev page</button>
+        <button onClick={goToNextPage}>Next page</button>
         <div>{`Showing ${wordDocumentsOffset + 1}-${
           wordDocumentsOffset + (wordDocuments?.length || 0)
         } of ${wordDocumentsCount} Entries`}</div>

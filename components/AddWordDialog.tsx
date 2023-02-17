@@ -8,7 +8,9 @@ import { useRxCollection } from 'rxdb-hooks'
 import { nanoid } from 'nanoid'
 import { CircleIcon, CheckCircledIcon, TargetIcon } from '@radix-ui/react-icons'
 
-const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
+import { updateDueDate, calculateDueDate } from '../utils'
+
+export const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
 
 export const REVIEW_STATUS = [
   { status: '1', label: 'NEW', icon: <CircleIcon className="w-4 h-4" /> },
@@ -66,27 +68,6 @@ function ReadingsToggleGroup({ readings, handleInputChange }) {
   )
 }
 
-const calculateDueDate = (status: string) => {
-  if (status === '5') return ''
-
-  return new Date(
-    new Date().getTime() + 86400000 * DEFAULT_REVIEW_INTERVALS[status - 1]
-  ).toISOString()
-}
-
-const updateDueDate = (
-  status: string,
-  lastReviewedAt: string,
-  createdAt: string
-) => {
-  if (status === '5') return ''
-
-  return new Date(
-    new Date(lastReviewedAt || createdAt).getTime() +
-      86400000 * DEFAULT_REVIEW_INTERVALS[Number(status)]
-  ).toISOString()
-}
-
 export default function AddWordDialog({
   word,
   id,
@@ -104,7 +85,7 @@ export default function AddWordDialog({
     word: '',
     reading: '',
     meaning: '',
-    status: '1'
+    status: 1
   })
 
   const handleInputChange = (word: typeof inputs) => {
@@ -119,16 +100,18 @@ export default function AddWordDialog({
   }
 
   const handleWordSave = async () => {
+    const today = new Date().toISOString()
+
     // Create
     if (!id) {
       await wordsCollection?.upsert({
         id: nanoid(8),
         word: inputs.word,
         meaning: inputs.meaning,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        lastReviewedAt: '',
-        dueDate: calculateDueDate(inputs.status),
+        createdAt: today,
+        updatedAt: today,
+        lastReviewedAt: null,
+        dueDate: calculateDueDate(inputs.status, DEFAULT_REVIEW_INTERVALS),
         reviewStatus: inputs.status
       })
       console.log('DatabaseService: create doc')
@@ -140,11 +123,11 @@ export default function AddWordDialog({
         $set: {
           word: inputs.word,
           meaning: inputs.meaning,
-          updatedAt: new Date().toISOString(),
+          updatedAt: today,
           dueDate: updateDueDate(
-            inputs.status,
-            wordDocument.lastReviewedAt,
-            wordDocument.createdAt
+            Number(inputs.status),
+            wordDocument.lastReviewedAt || wordDocument.createdAt,
+            DEFAULT_REVIEW_INTERVALS
           ),
           reviewStatus: inputs.status
         }
@@ -179,7 +162,7 @@ export default function AddWordDialog({
         word: mainReading.word || mainReading.reading || '',
         reading: mainReading.reading || '',
         meaning: '',
-        status: '1'
+        status: 1
       })
     }
   }
@@ -283,8 +266,8 @@ export default function AddWordDialog({
             <ToggleGroup.Root
               className="flex flex-nowrap items-center gap-2"
               type="single"
-              defaultValue={inputs.status}
-              value={inputs.status}
+              defaultValue={inputs.status.toString()}
+              value={inputs.status.toString()}
               aria-label="Text alignment"
               onValueChange={(value) => {
                 handleInputChange({ status: value })
