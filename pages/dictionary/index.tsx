@@ -1,13 +1,16 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import type { ReactElement } from 'react'
-import { MagnifyingGlassIcon, PlusIcon } from '@radix-ui/react-icons'
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
 import type { QueryFunctionContext } from '@tanstack/react-query'
+import { ReactElement, useState } from 'react'
+import * as Collapsible from '@radix-ui/react-collapsible'
+import { PlusIcon } from '@radix-ui/react-icons'
+import React from 'react'
 
-import type { WordResult } from '../../lib/types'
 import DictionaryLayout from '../../layouts/DictionaryLayout'
-import AddWordDialog from '../../components/AddWordDialog'
+import AddCard from '../../components/AddCard'
+import type { WordResult } from '../../lib/types'
 
 function createWordTagsList(isCommon: boolean, jlpt: string[]) {
   const commonTag = isCommon
@@ -60,6 +63,8 @@ export default function Dictionary() {
   const router = useRouter()
   const searchKeyword = router.query?.q?.toString()
 
+  const [open, setOpen] = useState(false)
+
   const searchQuery = useInfiniteQuery({
     queryKey: ['words', searchKeyword],
     queryFn: fetchWords,
@@ -102,6 +107,10 @@ export default function Dictionary() {
                 const [mainReading, ...otherReadings] = word.japanese
                 const wordTags = createWordTagsList(word.is_common, word.jlpt)
 
+                const cardTextContent = `${
+                  mainReading.word || mainReading.reading
+                }\n---\n${mainReading.reading} `
+
                 return (
                   <div key={word.slug} className="block w-full py-5">
                     <dl className="grid gap-4">
@@ -127,13 +136,6 @@ export default function Dictionary() {
                               </div>
                             )}
                           </div>
-
-                          <AddWordDialog word={word}>
-                            <button className="inline-flex items-center space-x-2 whitespace-nowrap rounded h-8 px-3 text-sm leading-5 border border-white/20 hover:bg-white/5 transition">
-                              <PlusIcon className="w-4 h-4" />
-                              <span>Save</span>
-                            </button>
-                          </AddWordDialog>
                         </div>
 
                         {mainReading.word && (
@@ -237,6 +239,20 @@ export default function Dictionary() {
                           </div>
                         </div>
                       )}
+
+                      {/* Add word */}
+                      <Collapsible.Root open={open} onOpenChange={setOpen}>
+                        <Collapsible.Trigger className="data-[state=open]:hidden inline-flex items-center space-x-2">
+                          <PlusIcon className="w- h-5" />
+                          <span>Add</span>
+                        </Collapsible.Trigger>
+                        <Collapsible.Content className="flex flex-col data-[state=open]:border border-white/20 rounded-lg">
+                          <AddCard
+                            close={() => setOpen(false)}
+                            textContent={cardTextContent}
+                          />
+                        </Collapsible.Content>
+                      </Collapsible.Root>
                     </dl>
                   </div>
                 )

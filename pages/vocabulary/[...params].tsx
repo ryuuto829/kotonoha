@@ -14,12 +14,14 @@ import {
 } from '@radix-ui/react-icons'
 import * as Progress from '@radix-ui/react-progress'
 
-import AddWordDialog from '../../components/AddWordDialog'
-import { REVIEW_STATUS } from '../../components/AddWordDialog'
+import { REVIEW_STATUS } from '../../components/StatusMenu'
 
 import SortingMenu from '../../components/SortingMenu'
 import ShowWordsMenu from '../../components/ShowWordsMenu'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
+import AddCard from '../../components/AddCard'
+
+import * as Dialog from '@radix-ui/react-dialog'
 
 import { updateDueDate } from '../../utils'
 
@@ -27,7 +29,7 @@ const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
 
 export default function Vocabulary() {
   const router = useRouter()
-  const wordsCollection = useRxCollection('words')
+  const collection = useRxCollection('words')
 
   const [srs, review] = router.query?.params || []
 
@@ -42,11 +44,13 @@ export default function Vocabulary() {
   const [documentIndexes, setDocumentIndexes] = useState()
   const [showCardBack, setShowCardBack] = useState(false)
 
+  const [open, setOpen] = useState(false)
+
   useEffect(() => {
     let querySub: any
 
-    if (wordsCollection && srs && !review) {
-      const query = wordsCollection
+    if (collection && srs && !review) {
+      const query = collection
         .find(
           srs === 'srs'
             ? {
@@ -67,7 +71,7 @@ export default function Vocabulary() {
 
         if (results) {
           // 1. Update all documents count
-          wordsCollection.count().exec().then(setWordDocumentsCount)
+          collection.count().exec().then(setWordDocumentsCount)
 
           // 2. Set document indexes for reviews
           setDocumentIndexes([...Array.from(Array(results.length).keys())])
@@ -80,7 +84,7 @@ export default function Vocabulary() {
 
     return () => querySub?.unsubscribe()
   }, [
-    wordsCollection,
+    collection,
     sortOption,
     isAscending,
     showWords,
@@ -90,7 +94,7 @@ export default function Vocabulary() {
   ])
 
   const deleteWord = async (id) => {
-    const wordDocument = wordsCollection?.findOne(id)
+    const wordDocument = collection?.findOne(id)
 
     await wordDocument?.remove()
     console.log('DatabaseService: delete doc')
@@ -315,18 +319,27 @@ export default function Vocabulary() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <AddWordDialog>
-            <button className="flex items-center text-white border border-white border-opacity-20 px-3 rounded-[3px] h-8 space-x-2">
-              <PlusIcon className="w-4 h-4" />
-              <span>Add word</span>
-            </button>
-          </AddWordDialog>
+          {/* Add word */}
+          <Dialog.Root open={open} onOpenChange={setOpen}>
+            <Dialog.Trigger className="inline-flex items-center space-x-2">
+              <PlusIcon className="w- h-5" />
+              <span>Add</span>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
+                <AddCard close={() => setOpen(false)} />
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
           <Link
             href={`${srs}/review`}
             className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
           >
             <ArchiveIcon className="w-4 h-4" />
             <span>Review</span>
+            <span className="text-xs py-1 px-1.5 bg-black/10 rounded">
+              {wordDocuments?.length || '0'}
+            </span>
           </Link>
         </div>
       </div>
@@ -362,49 +375,61 @@ export default function Vocabulary() {
         </div>
       </div>
 
-      {/* Vocab list */}
-      <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20">
-        <div className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2">
-          <div>Word</div>
-          <div>Meaning</div>
-          <div>Status</div>
-        </div>
-        {wordDocuments &&
-          wordDocuments.map((doc) => (
-            <div
-              key={doc.id}
-              className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4"
-            >
-              <div className="text-lg">{doc.word}</div>
-              <div className="text-sm">{doc.meaning}</div>
-              <div>
-                {REVIEW_STATUS.filter(
-                  (el) => el.status === doc.reviewStatus?.toString()
-                ).map((el) => (
-                  <div
-                    key={el.label}
-                    className="inline-flex items-center space-x-2"
-                  >
-                    {el.icon}
-                    <span className="text-xs">{el.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <MoreOptionsMenu deleteWord={deleteWord} doc={doc} />
-              </div>
-            </div>
-          ))}
-      </div>
+      {wordDocuments?.length === 0 && <div>No data</div>}
 
-      {/* Pagination */}
-      <div>
-        <button onClick={goToPreviousPage}>Prev page</button>
-        <button onClick={goToNextPage}>Next page</button>
-        <div>{`Showing ${wordDocumentsOffset + 1}-${
-          wordDocumentsOffset + (wordDocuments?.length || 0)
-        } of ${wordDocumentsCount} Entries`}</div>
-      </div>
+      {/* Vocab list */}
+      {wordDocuments?.length > 0 && (
+        <>
+          {/* <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20"> */}
+          <div className="flex flex-col space-y-2">
+            <div className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2">
+              <div>Word</div>
+              <div>Meaning</div>
+              <div>Status</div>
+            </div>
+            {wordDocuments &&
+              wordDocuments.map((doc) => (
+                <div
+                  key={doc.id}
+                  // className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4"
+                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 border border-white/20 rounded-lg items-center"
+                >
+                  <div className="text-lg">{doc.word}</div>
+                  <div className="text-sm">{doc.meaning}</div>
+                  <div>
+                    {REVIEW_STATUS.filter(
+                      (el) => el.status === doc.reviewStatus?.toString()
+                    ).map((el) => (
+                      <div
+                        key={el.label}
+                        className={`inline-flex items-center space-x-1 h-5 rounded-full px-2 text-xs ${el.bg}`}
+                      >
+                        <div
+                          className={`mr-1.5 rounded-full h-2 w-2 ${el.color}`}
+                        ></div>
+                        <span>{el.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <MoreOptionsMenu deleteWord={deleteWord} doc={doc} />
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between">
+            <div>{`Showing ${wordDocumentsOffset + 1}-${
+              wordDocumentsOffset + (wordDocuments?.length || 0)
+            } of ${wordDocumentsCount} Entries`}</div>
+            <div className="inline-flex items-center space-x-2">
+              <button onClick={goToPreviousPage}>Prev page</button>
+              <button onClick={goToNextPage}>Next page</button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }
