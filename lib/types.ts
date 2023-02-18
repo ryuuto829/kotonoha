@@ -1,5 +1,12 @@
 import type { NextPage } from 'next'
 import type { ReactElement, ReactNode } from 'react'
+import {
+  toTypedRxJsonSchema,
+  ExtractDocumentTypeFromTypedRxJsonSchema,
+  RxDocument,
+  RxCollection
+} from 'rxdb'
+import { wordSchema, userSchema } from './schema'
 
 /**
  * Jisho API
@@ -69,3 +76,20 @@ export type KanjiStrokePath = {
     y: string
   }
 }
+
+/**
+ * Using RxDB with TypeScript
+ * @link https://rxdb.info/tutorials/typescript.html
+ */
+const _wordSchemaTyped = toTypedRxJsonSchema(wordSchema)
+const _userSchemaTyped = toTypedRxJsonSchema(userSchema)
+
+export type WordDocType = RxDocument<
+  ExtractDocumentTypeFromTypedRxJsonSchema<typeof _wordSchemaTyped>
+>
+
+export type UserDocType = RxDocument<
+  ExtractDocumentTypeFromTypedRxJsonSchema<typeof _userSchemaTyped>
+>
+
+export type WordsCollectionType = RxCollection<WordDocType, {}, {}, {}>

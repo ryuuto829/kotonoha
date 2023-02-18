@@ -47,7 +47,7 @@ export const wordSchema = {
     'dueDate',
     'reviewStatus'
   ]
-}
+} as const
 
 export const userSchema = {
   title: 'user schema',
@@ -96,4 +96,4 @@ export const userSchema = {
     }
   },
   required: ['id', 'experiencePoints']
-}
+} as const
