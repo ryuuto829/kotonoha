@@ -4,7 +4,15 @@ import StatusMenu from './StatusMenu'
 import { saveCard, updateCard } from '../lib/words'
 import { useRxCollection } from 'rxdb-hooks'
 
-export default function AddCard({ textContent, close, docId }) {
+export default function AddCard({
+  close,
+  textContent,
+  docId
+}: {
+  close: () => void
+  textContent?: string
+  docId?: string
+}) {
   const collection = useRxCollection('words')
   const inputRef: Ref<HTMLDivElement> = useRef(null)
 
