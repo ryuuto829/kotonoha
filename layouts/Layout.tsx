@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import type { ReactNode } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
+import { useRxCollection } from 'rxdb-hooks'
+
+import { SketchLogoIcon } from '@radix-ui/react-icons'
 
 const NAV_LINKS = [
   {
@@ -15,6 +18,21 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const router = useRouter()
+  const collection = useRxCollection('users')
+
+  const [user, setUser] = useState()
+
+  useEffect(() => {
+    let querySub: any
+
+    const query = collection?.findOne('user')
+
+    querySub = (query?.$.subscribe as any)((results) => {
+      setUser(results?.experiencePoints)
+    })
+
+    return () => querySub?.unsubscribe()
+  }, [collection])
 
   return (
     <header>
@@ -37,13 +55,20 @@ export function Navbar() {
               </Link>
             ))}
           </div>
-          <div className="h-16 flex items-center space-x-2 px-4 border-x border-white border-opacity-20">
-            <div className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                DM
-              </span>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
+              <SketchLogoIcon className="w-4 h-4" />
+              <span>{user?.toFixed(2) || 0}</span>
             </div>
-            <div className="font-medium">Profile</div>
+            <div className="h-16 flex items-center space-x-2 px-4 border-x border-white border-opacity-20">
+              <div className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+                <span className="font-medium text-gray-600 dark:text-gray-300">
+                  DM
+                </span>
+              </div>
+
+              <div className="font-medium">Profile</div>
+            </div>
           </div>
         </div>
       </nav>

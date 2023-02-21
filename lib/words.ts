@@ -6,11 +6,15 @@ const MS_IN_DAY = 86400000 // 86,400,000 Milliseconds (ms) = 1 Day
 
 // UTILS
 
-function _formatDueDate(date: Date) {
+export function _formatDueDate(date: Date) {
   return date.toISOString().split('T')[0]
 }
 
-function _updateDueDate(status: number, startDay: string, intervals: number[]) {
+export function _updateDueDate(
+  status: number,
+  startDay: string,
+  intervals: number[] = DEFAULT_REVIEW_INTERVALS
+) {
   if (status === 5) return ''
 
   return _formatDueDate(
@@ -18,7 +22,10 @@ function _updateDueDate(status: number, startDay: string, intervals: number[]) {
   )
 }
 
-function _calculateDueDate(status: number, intervals: number[]) {
+export function _calculateDueDate(
+  status: number,
+  intervals: number[] = DEFAULT_REVIEW_INTERVALS
+) {
   if (status === 5) return ''
 
   const today = new Date()
@@ -30,10 +37,11 @@ function _calculateDueDate(status: number, intervals: number[]) {
   )
 }
 
-function _getTodayISO() {
+export function _getTodayISO() {
   return new Date().toISOString()
 }
-function _formatCardContent(content: string) {
+
+export function _formatCardContent(content: string) {
   return content.split('\n---\n')
 }
 
@@ -155,8 +163,7 @@ export async function deleteCard({
   collection: WordsCollectionType
   docId: string
 }) {
-  const wordDocument = collection?.findOne(docId)
-  await wordDocument?.remove()
+  await collection?.findOne(docId).remove()
 
   console.log('DatabaseService: delete document')
 }

@@ -19,12 +19,31 @@ type AppPropsWithLayout = AppProps & {
 
 export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const [queryClient] = useState(() => new QueryClient())
-  const [db, setDb] = useState()
+  const [db, setDb] = useState<RxDatabase<any>>()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // RxDB instantiation can be asynchronous
-    get().then(setDb as RxDatabase<any>)
+    get().then(setDb)
   }, [])
+
+  useEffect(() => {
+    if (db) {
+      db.users
+        .findOne('user')
+        .exec()
+        .then(async (doc) => {
+          if (!doc) {
+            await db.users.upsert({
+              id: 'user',
+              experiencePoints: 0,
+              stats: []
+            })
+          }
+          setLoading(false)
+        })
+    }
+  }, [db])
 
   /**
    * Persistent 'Per-Page' Layout in Next.js
@@ -32,19 +51,19 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
    */
   const getLayout = Component.getLayout ?? ((page) => page)
 
-  if (!db) {
+  if (!db && loading) {
     return <div>Loading db ...</div>
   }
 
   return (
-    <Layout>
-      {getLayout(
-        <Provider db={db}>
+    <Provider db={db}>
+      <Layout>
+        {getLayout(
           <QueryClientProvider client={queryClient}>
             <Component {...pageProps} />
           </QueryClientProvider>
-        </Provider>
-      )}
-    </Layout>
+        )}
+      </Layout>
+    </Provider>
   )
 }

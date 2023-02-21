@@ -13,10 +13,13 @@ import { WordDocType } from '../../lib/types'
 import SortingMenu from '../../components/SortingMenu'
 import ShowWordsMenu from '../../components/ShowWordsMenu'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
-import AddCard from '../../components/AddCard'
+import EditDialog from '../../components/EditDialog'
 import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
 import { deleteCard } from '../../lib/words'
+
+import { _formatCardContent, _calculateDueDate } from '../../lib/words'
+import { nanoid } from 'nanoid'
 
 export default function Vocabulary() {
   const router = useRouter()
@@ -30,8 +33,6 @@ export default function Vocabulary() {
   const [isAscending, setIsAscending] = useState(false)
   const [wordDocumentsOffset, setWordDocumentsOffset] = useState(0)
   const [wordDocumentsCount, setWordDocumentsCount] = useState(0)
-
-  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     let querySub: any
@@ -137,17 +138,13 @@ export default function Vocabulary() {
 
         <div className="flex items-center space-x-2">
           {/* Add word */}
-          <Dialog.Root open={open} onOpenChange={setOpen}>
-            <Dialog.Trigger className="inline-flex items-center space-x-2">
-              <PlusIcon className="w- h-5" />
+          <EditDialog modal={true}>
+            <button className="inline-flex items-center space-x-2">
+              <PlusIcon className="w-5 h-5" />
               <span>Add</span>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
-                <AddCard close={() => setOpen(false)} />
-              </Dialog.Content>
-            </Dialog.Portal>
-          </Dialog.Root>
+            </button>
+          </EditDialog>
+
           <Link
             href={`${srs}/review`}
             className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
