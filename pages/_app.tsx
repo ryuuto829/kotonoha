@@ -9,41 +9,19 @@ import '../styles/globals.css'
 import Layout from '../layouts/Layout'
 import { get } from '../lib/database'
 
-// import { Inter } from '@next/font/google'
-
-// const inter = Inter({ subsets: ['latin'] })
-
-type AppPropsWithLayout = AppProps & {
+export default function App({
+  Component,
+  pageProps
+}: AppProps & {
   Component: NextPageWithLayout
-}
-
-export default function App({ Component, pageProps }: AppPropsWithLayout) {
+}) {
   const [queryClient] = useState(() => new QueryClient())
   const [db, setDb] = useState<RxDatabase<any>>()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // RxDB instantiation can be asynchronous
     get().then(setDb)
   }, [])
-
-  useEffect(() => {
-    if (db) {
-      db.users
-        .findOne('user')
-        .exec()
-        .then(async (doc) => {
-          if (!doc) {
-            await db.users.upsert({
-              id: 'user',
-              experiencePoints: 0,
-              stats: []
-            })
-          }
-          setLoading(false)
-        })
-    }
-  }, [db])
 
   /**
    * Persistent 'Per-Page' Layout in Next.js
@@ -51,7 +29,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
    */
   const getLayout = Component.getLayout ?? ((page) => page)
 
-  if (!db && loading) {
+  if (!db) {
     return <div>Loading db ...</div>
   }
 

@@ -8,15 +8,19 @@ import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
-import { wordSchema, userSchema } from './schema'
+import { wordSchema, userSchema, progressSchema } from './schema'
 
-// removeRxDatabase('kotonoha-db', getRxStorageDexie())
+removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
-// Enable mango-query-syntax with chained methods
+/**
+ * Enable mango-query-syntax with chained methods
+ */
 addRxPlugin(RxDBQueryBuilderPlugin)
 addRxPlugin(RxDBUpdatePlugin)
 
-// Dev Mode adds readable error messages
+/**
+ * Dev Mode adds readable error messages
+ */
 if (process.env.NODE_ENV === 'development') {
   import('rxdb/plugins/dev-mode').then(({ RxDBDevModePlugin }) =>
     addRxPlugin(RxDBDevModePlugin as any)
@@ -26,7 +30,9 @@ if (process.env.NODE_ENV === 'development') {
 let dbPromise: Promise<RxDatabase> | null = null
 
 const _create = async () => {
-  // create RxDB
+  /**
+   * Create RxDB
+   */
   const db = await createRxDatabase({
     name: 'kotonoha-db',
     storage: getRxStorageDexie()
@@ -34,17 +40,35 @@ const _create = async () => {
 
   console.log('DatabaseService: create database')
 
-  // create collections
+  /**
+   * Add collections
+   */
   await db.addCollections({
     words: {
       schema: wordSchema
     },
     users: {
       schema: userSchema
+    },
+    progress: {
+      schema: progressSchema
     }
   })
 
   console.log('DatabaseService: create collections')
+
+  /**
+   * Add default user account
+   */
+  const userDoc = await db.users.findOne('user').exec()
+
+  if (!userDoc) {
+    await db.users.upsert({
+      id: 'user',
+      experiencePoints: 0,
+      stats: []
+    })
+  }
 
   // hooks
   // ...
@@ -56,6 +80,9 @@ const _create = async () => {
 }
 
 export const get = () => {
-  if (!dbPromise) dbPromise = _create()
+  if (!dbPromise) {
+    dbPromise = _create()
+  }
+
   return dbPromise
 }
