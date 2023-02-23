@@ -23,7 +23,7 @@ import { nanoid } from 'nanoid'
 
 export default function Vocabulary() {
   const router = useRouter()
-  const collection = useRxCollection<WordDocType>('words')
+  const collection = useRxCollection<WordDocType>('cards')
 
   const [srs, review] = router.query?.params || []
 
@@ -43,7 +43,7 @@ export default function Vocabulary() {
           srs === 'srs'
             ? {
                 selector: {
-                  dueDate: {
+                  srsDueDate: {
                     $lte: new Date().toISOString().split('T')[0]
                   }
                 }
@@ -212,7 +212,7 @@ export default function Vocabulary() {
                   <div className="text-sm">{doc.meaning}</div>
                   <div>
                     {REVIEW_STATUS.filter(
-                      (el) => el.status === doc.reviewStatus?.toString()
+                      (el) => el.status === doc.status?.toString()
                     ).map((el) => (
                       <div
                         key={el.label}

@@ -18,9 +18,9 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const router = useRouter()
-  const collection = useRxCollection('users')
+  const collection = useRxCollection('profiles')
 
-  const [user, setUser] = useState()
+  const [points, setPoints] = useState()
 
   useEffect(() => {
     let querySub: any
@@ -28,7 +28,7 @@ export function Navbar() {
     const query = collection?.findOne('user')
 
     querySub = (query?.$.subscribe as any)((results) => {
-      setUser(results?.experiencePoints)
+      setPoints(results?.points)
     })
 
     return () => querySub?.unsubscribe()
@@ -58,7 +58,7 @@ export function Navbar() {
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               <SketchLogoIcon className="w-4 h-4" />
-              <span>{user?.toFixed(2) || 0}</span>
+              <span>{points?.toFixed(2) || 0}</span>
             </div>
             <div className="h-16 flex items-center space-x-2 px-4 border-x border-white border-opacity-20">
               <div className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">

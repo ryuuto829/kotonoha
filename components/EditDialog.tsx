@@ -74,9 +74,9 @@ export default function EditDialog({
   modal?: boolean
   children: ReactElement
 }) {
-  const wordCollection = useRxCollection('words')
-  const userCollection = useRxCollection('users')
-  const userDoc = userCollection?.findOne('user')
+  const cardsCollection = useRxCollection('cards')
+  const profilesCollection = useRxCollection('profiles')
+  const profileDoc = profilesCollection?.findOne('user')
 
   const [open, setOpen] = useState(false)
 
@@ -93,11 +93,11 @@ export default function EditDialog({
           word: word || '',
           meaning: meaning || '',
           updatedAt: today,
-          dueDate: _updateDueDate(
+          srsDueDate: _updateDueDate(
             status,
-            doc?.lastReviewedAt || doc?.createdAt
+            doc?.lastReviewed || doc?.createdAt
           ),
-          reviewStatus: status
+          status
         }
       })
     }
@@ -105,21 +105,20 @@ export default function EditDialog({
     /**
      * Add a new word
      */
-    await wordCollection?.upsert({
+    await cardsCollection?.upsert({
       id: nanoid(8),
       word: word || '',
       meaning: meaning || '',
       createdAt: today,
       updatedAt: today,
-      lastReviewedAt: '',
-      dueDate: _calculateDueDate(status),
-      reviewStatus: status
+      lastReviewed: '',
+      srsDueDate: _calculateDueDate(status),
+      status: status
     })
 
-    await userDoc?.update({
+    await profileDoc?.update({
       $inc: {
-        experiencePoints: 0.5,
-        totalWords: 1
+        points: 0.5
       }
     })
   }
@@ -141,7 +140,7 @@ export default function EditDialog({
               close={handleClose}
               textContent={textContent}
               handleWordSave={saveWord}
-              initialStatus={doc?.reviewStatus}
+              initialStatus={doc?.status}
             />
           </Dialog.Content>
         </Dialog.Portal>
@@ -160,7 +159,7 @@ export default function EditDialog({
           close={handleClose}
           textContent={textContent}
           handleWordSave={saveWord}
-          initialStatus={doc?.reviewStatus}
+          initialStatus={doc?.status}
         />
       </Collapsible.Content>
     </Collapsible.Root>

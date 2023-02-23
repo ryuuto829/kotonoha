@@ -1,6 +1,6 @@
-export const wordSchema = {
-  title: 'word schema',
-  description: 'word schema',
+export const cardSchema = {
+  title: 'card schema',
+  description: 'card schema',
   version: 0,
   primaryKey: 'id',
   type: 'object',
@@ -23,18 +23,26 @@ export const wordSchema = {
       type: 'string',
       format: 'date-time'
     },
-    lastReviewedAt: {
+    lastReviewed: {
       type: 'string',
       format: 'date-time'
     },
-    dueDate: {
+    lastReviewedCorrect: {
       type: 'string',
       format: 'date-time'
     },
-    reviewStatus: {
+    srsDueDate: {
+      type: 'string',
+      format: 'date-time'
+    },
+    status: {
       type: 'number',
       minimum: 1,
       maximum: 5
+    },
+    statusChangedDate: {
+      type: 'string',
+      format: 'date-time'
     }
   },
   required: [
@@ -49,9 +57,9 @@ export const wordSchema = {
   ]
 } as const
 
-export const userSchema = {
-  title: 'user schema',
-  description: 'user schema',
+export const profileSchema = {
+  title: 'profile schema',
+  description: 'user profile',
   version: 0,
   primaryKey: 'id',
   type: 'object',
@@ -60,57 +68,28 @@ export const userSchema = {
       type: 'string',
       maxLength: 100
     },
+    fullName: {
+      type: 'string'
+    },
+    username: {
+      type: 'string'
+    },
     dateJoined: {
       type: 'string'
     },
-    experiencePoints: {
+    setting: {
+      type: 'object'
+    },
+    points: {
       type: 'number'
-    },
-    coinsEarned: {
-      name: {
-        type: 'string'
-      },
-      cumulative: {
-        type: 'number'
-      },
-      daily: {
-        type: 'number'
-      }
-    },
-    stats: {
-      type: 'object',
-      properties: {
-        date: {
-          type: 'string',
-          format: 'date-time'
-        },
-        wordsAdded: {
-          type: 'number'
-        },
-        wordsLearned: {
-          type: 'number'
-        },
-        experiencePoints: {
-          type: 'number'
-        },
-        customReviews: {
-          type: 'number'
-        },
-        srsSuccessedReviews: {
-          type: 'number'
-        },
-        srsFailedReviews: {
-          type: 'number'
-        }
-      }
     }
   },
-  required: ['id', 'experiencePoints']
+  required: ['id', 'username', 'points', 'dateJoined']
 } as const
 
 export const progressSchema = {
   title: 'progress schema',
-  description: 'progress schema',
+  description: 'statistics which are tracked daily',
   version: 0,
   primaryKey: 'name',
   type: 'object',
@@ -119,12 +98,24 @@ export const progressSchema = {
       type: 'string',
       maxLength: 100
     },
-    wordsAdded: {
+    pointsEarned: {
       type: 'number'
     },
-    coinsEarned: {
+    cardsAdded: {
+      type: 'number'
+    },
+    /**
+     * Any time user move a card to status 4 or 5
+     */
+    cardsLearned: {
+      type: 'number'
+    },
+    /**
+     * Total reviews (including srs)
+     */
+    cardsReviewed: {
       type: 'number'
     }
   },
-  required: ['name', 'wordsAdded']
+  required: ['name']
 } as const

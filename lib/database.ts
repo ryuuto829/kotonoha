@@ -8,7 +8,7 @@ import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
-import { wordSchema, userSchema, progressSchema } from './schema'
+import { cardSchema, profileSchema, progressSchema } from './schema'
 
 removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
@@ -19,7 +19,7 @@ addRxPlugin(RxDBQueryBuilderPlugin)
 addRxPlugin(RxDBUpdatePlugin)
 
 /**
- * Dev Mode adds readable error messages
+ * Dev Mode with readable error messages
  */
 if (process.env.NODE_ENV === 'development') {
   import('rxdb/plugins/dev-mode').then(({ RxDBDevModePlugin }) =>
@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'development') {
 
 let dbPromise: Promise<RxDatabase> | null = null
 
-const _create = async () => {
+export const create = async () => {
   /**
    * Create RxDB
    */
@@ -44,11 +44,11 @@ const _create = async () => {
    * Add collections
    */
   await db.addCollections({
-    words: {
-      schema: wordSchema
+    cards: {
+      schema: cardSchema
     },
-    users: {
-      schema: userSchema
+    profiles: {
+      schema: profileSchema
     },
     progress: {
       schema: progressSchema
@@ -60,14 +60,16 @@ const _create = async () => {
   /**
    * Add default user account
    */
-  const userDoc = await db.users.findOne('user').exec()
-
+  const userDoc = await db.profiles.findOne('user').exec()
   if (!userDoc) {
-    await db.users.upsert({
+    await db.profiles.upsert({
       id: 'user',
-      experiencePoints: 0,
-      stats: []
+      username: 'user',
+      points: 0,
+      dateJoined: new Date().toISOString()
     })
+
+    console.log('DatabaseService: create user')
   }
 
   // hooks
@@ -81,7 +83,7 @@ const _create = async () => {
 
 export const get = () => {
   if (!dbPromise) {
-    dbPromise = _create()
+    dbPromise = create()
   }
 
   return dbPromise

@@ -14,15 +14,16 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { ChevronDownIcon, CheckIcon } from '@radix-ui/react-icons'
 
 export const DEFAULT_PERIODS = ['last_7d', 'last_30d', 'last_6m', 'all']
-export const DEFAULT_METRICS = ['wordsAdded', 'coinsEarned']
+export const DEFAULT_METRICS = ['cardsAdded', 'pointsEarned']
 
 export function Menu({
-  statusOption,
-  changeStatus,
-  array
+  option,
+  changeOption,
+  options
 }: {
-  statusOption: string
-  changeStatus: (value: string) => void
+  option: string
+  changeOption: (value: string) => void
+  options: string[]
 }) {
   return (
     <DropdownMenu.Root modal={false}>
@@ -30,7 +31,7 @@ export function Menu({
         aria-label="Sorting options"
         className="inline-flex items-center space-x-2 p-1.5 text-base h-7 rounded-[3px] whitespace-nowrap hover:bg-white hover:bg-opacity-5 data-[state=open]:bg-white data-[state=open]:bg-opacity-5"
       >
-        <span>{statusOption}</span>
+        <span>{option}</span>
         <ChevronDownIcon className="w-4 h-4" />
       </DropdownMenu.Trigger>
 
@@ -40,11 +41,8 @@ export function Menu({
           sideOffset={5}
           className={`py-2 rounded bg-[rgb(37,37,37)] text-sm text-white text-opacity-80 w-[230px]`}
         >
-          <DropdownMenu.RadioGroup
-            value={statusOption}
-            onValueChange={changeStatus}
-          >
-            {array.map((item) => (
+          <DropdownMenu.RadioGroup value={option} onValueChange={changeOption}>
+            {options.map((item) => (
               <DropdownMenu.RadioItem
                 key={item}
                 value={item}
@@ -53,7 +51,7 @@ export function Menu({
                 <div className="ml-1.5 mr-3 flex-1">{item}</div>
                 <CheckIcon
                   className={`w-4 h-4 mr-2.5 ${
-                    statusOption === item ? '' : 'hidden'
+                    option === item ? '' : 'hidden'
                   }`}
                 />
               </DropdownMenu.RadioItem>
@@ -65,34 +63,26 @@ export function Menu({
   )
 }
 
-export function formatISODate(date: Date) {
-  return date.toISOString().split('T')[0]
+export function formatISODate(date?: Date) {
+  return date?.toISOString().split('T')[0]
 }
 
-const getStartEndDates = (period) => {
-  const today = new Date()
+const getStartEndDates = (period: string) => {
+  if (period === 'all') return []
+
   let start, end
+  const today = new Date()
+  // Get number of days from the period name, ex.: 'last_7d' -> 7
+  const days = Number(period.replace(/\D/g, ''))
 
-  // 7 days array (daily)
-  if (period === 'last_7d' || period === 'last_30d') {
+  if (period.endsWith('d')) {
+    start = new Date(today.valueOf() - 24 * 60 * 60 * 1000 * days)
     end = today
-    start = new Date(
-      Date.now() - 24 * 60 * 60 * 1000 * period.replace(/\D/g, '')
-    )
   }
 
-  // last year = last 12 months (monthly)
-  if (period === 'last_6m') {
+  if (period.endsWith('m')) {
+    start = new Date(today.getFullYear(), today.getMonth() - days, 2)
     end = new Date(today.getFullYear(), today.getMonth(), 1)
-    start = new Date(
-      today.getFullYear(),
-      today.getMonth() - period.replace(/\D/g, ''),
-      2
-    )
-  }
-
-  if (period === 'all') {
-    return []
   }
 
   return [formatISODate(start), formatISODate(end)]
@@ -142,7 +132,7 @@ export default function Dashboard() {
 
   const [data, setData] = useState()
   const [period, setPeriod] = useState('all')
-  const [metric, setMetric] = useState('coinsEarned')
+  const [metric, setMetric] = useState('pointsEarned')
 
   useEffect(() => {
     if (!collection || !period || !metric) {
@@ -168,17 +158,23 @@ export default function Dashboard() {
         .sort({ name: 'asc' })
         .exec()
 
-      console.log(progressDoc)
-      /**
-       * Aggregate to {name, cumulative, daily}
-       */
+      if (progressDoc.length === 0) {
+        setData([
+          {
+            name: 'No Data',
+            daily: 0,
+            cumulative: 0
+          }
+        ])
+        return
+      }
 
-      let doc2
+      let chartData
       /**
        * Chart data daily
        */
       if (period == 'last_7d' || period === 'last_30d') {
-        doc2 = getDaysArray(start, end).reduce((data, name, index) => {
+        chartData = getDaysArray(start, end).reduce((data, name, index) => {
           const daily = progressDoc.find((x) => x.name === name)?.[metric] || 0
           const previousCumulative = data[index - 1]?.cumulative || 0
 
@@ -197,7 +193,7 @@ export default function Dashboard() {
        * Chart data monthly
        */
       if (period === 'last_6m') {
-        doc2 = getMonthArray().reduce((data, name, index) => {
+        chartData = getMonthArray().reduce((data, name, index) => {
           const daily =
             progressDoc
               .filter((x) => x.name.startsWith(name.slice(0, 7)))
@@ -217,7 +213,7 @@ export default function Dashboard() {
       }
 
       if (period === 'all') {
-        doc2 = getAllArray(progressDoc[0]?.name).reduce(
+        chartData = getAllArray(progressDoc[0]?.name).reduce(
           (data, name, index, arr) => {
             const daily =
               progressDoc
@@ -241,8 +237,8 @@ export default function Dashboard() {
         )
       }
 
-      console.log(doc2)
-      setData(doc2)
+      console.log(chartData)
+      setData(chartData)
     }
 
     getChartData(metric, period)
@@ -250,69 +246,68 @@ export default function Dashboard() {
 
   return (
     <>
-      <div>Home page</div>
       <button
         onClick={async () => {
           await collection?.bulkInsert([
             {
               name: '2023-02-21',
-              wordsAdded: 2,
-              coinsEarned: 1
+              cardsAdded: 2,
+              pointsEarned: 1
             },
             {
               name: '2023-02-20',
-              wordsAdded: 10,
-              coinsEarned: 1
+              cardsAdded: 10,
+              pointsEarned: 1
             },
             {
               name: '2023-02-19',
-              wordsAdded: 1,
-              coinsEarned: 1
+              cardsAdded: 1,
+              pointsEarned: 1
             },
             {
               name: '2023-01-25',
-              wordsAdded: 5,
-              coinsEarned: 1
+              cardsAdded: 5,
+              pointsEarned: 1
             },
             {
               name: '2023-02-01',
-              wordsAdded: 12,
-              coinsEarned: 1
+              cardsAdded: 12,
+              pointsEarned: 1
             },
             {
               name: '2023-01-15',
-              wordsAdded: 22,
-              coinsEarned: 1
+              cardsAdded: 22,
+              pointsEarned: 1
             },
             {
               name: '2023-01-20',
-              wordsAdded: 2,
-              coinsEarned: 1
+              cardsAdded: 2,
+              pointsEarned: 1
             },
             {
               name: '2023-01-07',
-              wordsAdded: 1,
-              coinsEarned: 1
+              cardsAdded: 1,
+              pointsEarned: 1
             },
             {
               name: '2022-09-07',
-              wordsAdded: 8,
-              coinsEarned: 1
+              cardsAdded: 8,
+              pointsEarned: 1
             },
             {
               name: '2022-12-14',
-              wordsAdded: 18,
-              coinsEarned: 1
+              cardsAdded: 18,
+              pointsEarned: 1
             },
             {
               name: '2023-02-15',
-              wordsAdded: 5,
-              coinsEarned: 1
+              cardsAdded: 5,
+              pointsEarned: 1
             },
             {
               name: '2022-01-15',
-              wordsAdded: 15,
-              coinsEarned: 5
+              cardsAdded: 15,
+              pointsEarned: 5
             }
           ])
         }}
@@ -320,29 +315,25 @@ export default function Dashboard() {
         Insert data
       </button>
 
-      <div>
-        Period:
+      <div className="flex items-center space-x-2">
         <Menu
-          statusOption={period}
-          changeStatus={setPeriod}
-          array={DEFAULT_PERIODS}
+          option={period}
+          changeOption={setPeriod}
+          options={DEFAULT_PERIODS}
         />
-      </div>
 
-      <div>
-        Metrics:
         <Menu
-          statusOption={metric}
-          changeStatus={setMetric}
-          array={DEFAULT_METRICS}
+          option={metric}
+          changeOption={setMetric}
+          options={DEFAULT_METRICS}
         />
       </div>
 
       <ComposedChart
-        width={730}
+        width={672}
         height={250}
         data={data}
-        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
       >
         <defs>
           <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
