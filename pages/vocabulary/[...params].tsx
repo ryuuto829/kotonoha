@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useRxCollection } from 'rxdb-hooks'
-import * as Dialog from '@radix-ui/react-dialog'
 import {
   PlusIcon,
   ArchiveIcon,
@@ -10,16 +9,17 @@ import {
 } from '@radix-ui/react-icons'
 
 import { WordDocType } from '../../lib/types'
-import SortingMenu from '../../components/SortingMenu'
-import ShowWordsMenu from '../../components/ShowWordsMenu'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
 import EditDialog from '../../components/EditDialog'
 import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
-import { deleteCard } from '../../lib/words'
-
-import { _formatCardContent, _calculateDueDate } from '../../lib/words'
-import { nanoid } from 'nanoid'
+import {
+  deleteCard,
+  _formatCardContent,
+  _calculateDueDate
+} from '../../lib/words'
+import FilterMenu from '../../components/FilterMenu'
+import TableSearch from '../../components/TableSearch'
 
 export default function Vocabulary() {
   const router = useRouter()
@@ -28,9 +28,14 @@ export default function Vocabulary() {
   const [srs, review] = router.query?.params || []
 
   const [wordDocuments, setWordDocuments] = useState<WordDocType[] | null>(null)
-  const [showWords, setShowWords] = useState('25')
-  const [sortOption, setSortOption] = useState('createdAt')
-  const [isAscending, setIsAscending] = useState(false)
+
+  const [cards, setCards] = useState('25')
+  const [sort, setSort] = useState('createdAt')
+  const [status, setStatus] = useState(['1', '2', '3', '4', '5'])
+  const [ascending, setAscending] = useState(false)
+
+  const [search, setSearch] = useState('')
+
   const [wordDocumentsOffset, setWordDocumentsOffset] = useState(0)
   const [wordDocumentsCount, setWordDocumentsCount] = useState(0)
 
@@ -39,20 +44,31 @@ export default function Vocabulary() {
 
     if (collection && srs && !review) {
       const query = collection
-        .find(
-          srs === 'srs'
-            ? {
-                selector: {
+        .find({
+          selector: {
+            srsDueDate: {
+              $or: [
+                {
                   srsDueDate: {
-                    $lte: new Date().toISOString().split('T')[0]
+                    $lte:
+                      srs === 'srs' && new Date().toISOString().split('T')[0],
+                    $ne: ''
                   }
-                }
-              }
-            : undefined
-        )
-        .sort({ [sortOption]: isAscending ? 1 : -1 })
+                },
+                { srsDueDate: { $gte: srs !== 'srs' && '' } }
+              ]
+            },
+            status: {
+              $in: status.map((x) => Number(x))
+            },
+            word: {
+              $regex: search !== null ? new RegExp(`^${search}`) : ''
+            }
+          }
+        })
+        .sort({ [sort]: ascending ? 1 : -1 })
         .skip(wordDocumentsOffset)
-        .limit(Number(showWords))
+        .limit(Number(cards))
 
       querySub = (query.$.subscribe as any)(
         (results: WordDocType[] | undefined) => {
@@ -72,11 +88,13 @@ export default function Vocabulary() {
     return () => querySub?.unsubscribe()
   }, [
     collection,
-    sortOption,
-    isAscending,
-    showWords,
+    cards,
+    ascending,
+    sort,
     wordDocumentsOffset,
     review,
+    status,
+    search,
     srs
   ])
 
@@ -85,7 +103,7 @@ export default function Vocabulary() {
   }
 
   const goToNextPage = () => {
-    const count = wordDocumentsOffset + Number(showWords)
+    const count = wordDocumentsOffset + Number(cards)
 
     if (count <= wordDocumentsCount) {
       setWordDocumentsOffset(count)
@@ -93,7 +111,7 @@ export default function Vocabulary() {
   }
 
   const goToPreviousPage = () => {
-    const count = wordDocumentsOffset - Number(showWords)
+    const count = wordDocumentsOffset - Number(cards)
 
     if (count >= 0) {
       setWordDocumentsOffset(count)
@@ -155,37 +173,23 @@ export default function Vocabulary() {
               {wordDocuments?.length || '0'}
             </span>
           </Link>
-        </div>
-      </div>
 
-      {/* Sort, filter & search */}
-      <div className="flex items-center space-x-2 py-2">
-        <SortingMenu
-          isAscending={isAscending}
-          changeAscending={setIsAscending}
-          sortOption={sortOption}
-          changeSortOption={setSortOption}
-        />
-        <ShowWordsMenu
-          wordsNumber={showWords}
-          changeOffset={setWordDocumentsOffset}
-          changeWordsNumber={setShowWords}
-        />
+          {/* Sort, filter & search */}
+          <TableSearch input={search} changeInput={setSearch} />
 
-        <div className="relative w-full">
-          <input
-            type="text"
-            name="search"
-            defaultValue={''}
-            className="block w-full p-2 pl-10 text-base bg-[color:rgb(37,37,37)] rounded"
-            placeholder="Search"
-            required
+          <FilterMenu
+            cards={cards}
+            sort={sort}
+            status={status}
+            ascending={ascending}
+            changeCards={(value) => {
+              setCards(value)
+              setWordDocumentsOffset(0)
+            }}
+            changeSort={setSort}
+            changeStatus={setStatus}
+            changeAscending={setAscending}
           />
-          <div className="absolute inset-y-0 left-0">
-            <button type="submit" className="p-2 hover:text-red-400 transition">
-              <MagnifyingGlassIcon className="w-6 h-6" />
-            </button>
-          </div>
         </div>
       </div>
 
