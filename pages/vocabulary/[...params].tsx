@@ -116,7 +116,7 @@ export default function Vocabulary() {
 
   // REVIEW PAGE
   if (review && wordDocuments?.length) {
-    return <Review wordDocuments={wordDocuments} srs={srs} />
+    return <Review cards={wordDocuments} srs={srs} />
   }
 
   // VOCABULARY PAGE

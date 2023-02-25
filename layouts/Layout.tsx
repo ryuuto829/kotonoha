@@ -172,7 +172,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <section className="grid grid-rows-[4rem_1fr] min-h-screen">
       <Navbar />
-      <main className="w-full max-w-2xl mx-auto px-4 py-8 text-white text-opacity-80 shadow-md">
+      <main className="w-full h-full max-w-2xl mx-auto px-4 py-8 text-white text-opacity-80 shadow-md">
         {children}
       </main>
     </section>

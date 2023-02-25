@@ -6,7 +6,7 @@ import {
   RxDocument,
   RxCollection
 } from 'rxdb'
-import { wordSchema, userSchema } from './schema'
+import { cardSchema, progressSchema } from './schema'
 
 /**
  * Jisho API
@@ -81,15 +81,15 @@ export type KanjiStrokePath = {
  * Using RxDB with TypeScript
  * @link https://rxdb.info/tutorials/typescript.html
  */
-const _wordSchemaTyped = toTypedRxJsonSchema(wordSchema)
-const _userSchemaTyped = toTypedRxJsonSchema(userSchema)
+const cardsSchemaTyped = toTypedRxJsonSchema(cardSchema)
+const progressSchemaTyped = toTypedRxJsonSchema(progressSchema)
 
 export type WordDocType = RxDocument<
-  ExtractDocumentTypeFromTypedRxJsonSchema<typeof _wordSchemaTyped>
+  ExtractDocumentTypeFromTypedRxJsonSchema<typeof cardsSchemaTyped>
 >
 
 export type UserDocType = RxDocument<
-  ExtractDocumentTypeFromTypedRxJsonSchema<typeof _userSchemaTyped>
+  ExtractDocumentTypeFromTypedRxJsonSchema<typeof progressSchemaTyped>
 >
 
 export type WordsCollectionType = RxCollection<WordDocType, {}, {}, {}>

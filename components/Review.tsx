@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import * as Progress from '@radix-ui/react-progress'
 import {
   ArrowRightIcon,
   ReloadIcon,
@@ -7,169 +8,244 @@ import {
   CheckIcon,
   ArrowDownIcon
 } from '@radix-ui/react-icons'
-import * as Progress from '@radix-ui/react-progress'
+
+import shuffle from 'lodash/shuffle'
 
 import type { WordDocType } from '../lib/types'
 import { updateCardReview } from '../lib/words'
+import Tooltip from '../components/Tooltip'
 
+/**
+ * Generate a collection of document indexes
+ * and then shuffle its values
+ */
 function getInitialIndexes(length: number) {
-  return [...Array.from(Array(length).keys())]
+  return shuffle([...Array.from(Array(length).keys())])
 }
 
-function moveCardToEnd({
-  documentIndexes,
-  progress
-}: {
-  documentIndexes: number[]
-  progress: number
-}) {
-  const indexes = [...documentIndexes]
+/**
+ * Move the current element to the end of the collection
+ */
+function shiftIndexes(indexes: number[], current: number) {
+  const shiftedIndexes = [...indexes]
+  const [currentIndex] = shiftedIndexes.splice(current, 1)
+  shiftedIndexes.push(currentIndex)
 
-  // push to the end of the stack
-  const [currentIndex] = indexes.splice(progress, 1)
-  indexes.push(currentIndex)
-
-  return indexes
+  return shiftedIndexes
 }
 
 export default function Review({
-  wordDocuments,
+  cards,
   srs
 }: {
-  wordDocuments: WordDocType[]
+  cards: WordDocType[]
   srs: string
 }) {
+  const [indexes, setIndexes] = useState(getInitialIndexes(cards.length))
+
   const [progress, setProgress] = useState(0)
-  const [documentIndexes, setDocumentIndexes] = useState(
-    getInitialIndexes(wordDocuments.length)
-  )
-  const [showCardBack, setShowCardBack] = useState(false)
+  const [back, setBack] = useState(false)
+
+  const [skipped, setSkipped] = useState(0)
+  const [remembered, setRemembered] = useState(0)
+  const [forget, setForget] = useState(0)
+
+  const handleKeydown = async ({ key }: { key: string }) => {
+    if (key === ' ' && back) {
+      await rememberCard()
+    }
+
+    if (key === ' ' && !back) {
+      flipCard()
+    }
+
+    if (key === 'ArrowRight') {
+      skipCard()
+    }
+
+    if (key === 'r') {
+      reviewCardAgain()
+    }
+
+    if (key === 'f') {
+      forgetCard()
+    }
+  }
+
+  useEffect(() => {
+    if (progress !== indexes.length) {
+      window.addEventListener('keydown', handleKeydown)
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [back, progress, indexes])
 
   const skipCard = () => {
-    setShowCardBack(false)
+    setBack(false)
     setProgress(progress + 1)
+    setSkipped(skipped + 1)
   }
 
   const flipCard = () => {
-    setShowCardBack(true)
+    setBack(true)
   }
 
   const reviewCardAgain = () => {
-    setDocumentIndexes(moveCardToEnd({ documentIndexes, progress }))
-    setShowCardBack(false)
+    setIndexes(shiftIndexes(indexes, progress))
+    setBack(false)
   }
 
   const forgetCard = async () => {
     await updateCardReview({
-      document: wordDocuments[documentIndexes[progress]],
+      document: cards[indexes[progress]],
       srs,
       success: false
     })
 
-    setShowCardBack(false)
+    setBack(false)
     setProgress(progress + 1)
+    setForget(forget + 1)
   }
 
   const rememberCard = async () => {
     await updateCardReview({
-      document: wordDocuments[documentIndexes[progress]],
+      document: cards[indexes[progress]],
       srs,
       success: true
     })
 
-    setShowCardBack(false)
+    setBack(false)
     setProgress(progress + 1)
+    setRemembered(remembered + 1)
   }
 
   return (
-    <div className="relative h-full">
-      {/* Progress bar */}
-      <div className="flex items-center justify-end">{`${progress} / ${documentIndexes.length}`}</div>
+    <div className="relative h-full flex flex-col space-y-2">
+      {/* Progress */}
+      <div className="flex justify-end space-x-2 text-sm text-white/60 font-medium">
+        <span className="text-white/80">{progress}</span>
+        <span>/</span>
+        <span>{indexes.length}</span>
+      </div>
+
       <Progress.Root
-        className="relative overflow-hidden bg-black rounded-full w-full h-2"
+        className="relative overflow-hidden bg-white/20 rounded-full w-full h-2"
         value={progress}
-        max={documentIndexes.length || 0}
+        max={indexes.length || 0}
       >
         <Progress.Indicator
-          className="bg-white w-full h-full transition"
+          className="bg-white/80 w-full h-full transition"
           style={{
             transform: `translateX(-${
-              100 - (100 / documentIndexes.length) * progress
+              100 - (100 / indexes.length) * progress
             }%)`
           }}
         />
       </Progress.Root>
 
       {/* Card content */}
-      {progress < documentIndexes.length && documentIndexes && (
-        <div className="h-full flex flex-col items-center gap-5">
-          <div className="h-[calc((100vh-600px)*.3)]"></div>
-          <div className="text-lg p-7">
-            {wordDocuments[documentIndexes[progress]].word}
-          </div>
-          <div className={`p-7 ${showCardBack ? '' : 'invisible'}`}>
-            {wordDocuments[documentIndexes[progress]].meaning}
+      {progress < indexes.length && (
+        <div className="h-full flex flex-col items-center gap-8 px-2">
+          <div className="h-[calc((100vh-600px)*0.3)]"></div>
+          <div className="text-3xl">{cards[indexes[progress]]?.word}</div>
+          <div className={`${back ? '' : 'invisible'}`}>
+            {cards[indexes[progress]]?.meaning}
           </div>
         </div>
       )}
 
-      {progress === documentIndexes.length && (
-        <>
-          <div>No more cards left.</div>
-          <Link href="/vocabulary/all">Back to vocab</Link>
-        </>
-      )}
-
       {/* Controls */}
-      {progress !== documentIndexes.length && (
+      {progress !== indexes.length && (
         <div className="flex items-center absolute bottom-0 w-full h-9">
           <div className="flex items-center space-x-2 z-20">
-            <button
-              className="inline-flex items-center space-x-2"
-              onClick={skipCard}
-            >
-              <span>Skip</span>
-              <ArrowRightIcon className="w-5 h-5" />
-            </button>
-            <button
-              className="inline-flex items-center space-x-2"
-              onClick={reviewCardAgain}
-            >
-              <span>Again</span>
-              <ReloadIcon className="w-5 h-5" />
-            </button>
+            <Tooltip content="Skip to next card" keyBinding="→">
+              <button
+                className="inline-flex items-center space-x-2"
+                onClick={skipCard}
+              >
+                <span>Skip</span>
+                <ArrowRightIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip content="Review this card again later" keyBinding="R">
+              <button
+                className="inline-flex items-center space-x-2"
+                onClick={reviewCardAgain}
+              >
+                <span>Again</span>
+                <ReloadIcon className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
 
           <div className="flex justify-center w-full -ml-[135px] space-x-4">
-            {!showCardBack && (
-              <button
-                className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-[#f1f1f1] text-[#0f0f0f]"
-                onClick={flipCard}
-              >
-                <ArrowDownIcon className="w-5 h-5" />
-                <span>Show meaning</span>
-              </button>
+            {!back && (
+              <Tooltip content="Show card meaning" keyBinding="space">
+                <button
+                  className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-[#f1f1f1] text-[#0f0f0f]"
+                  onClick={flipCard}
+                >
+                  <ArrowDownIcon className="w-4 h-4" />
+                  <span>Show meaning</span>
+                </button>
+              </Tooltip>
             )}
 
-            {srs === 'srs' && showCardBack && (
-              <button
-                className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-white/10 text-[#f1f1f1]"
-                onClick={forgetCard}
-              >
-                <Cross1Icon className="w-5 h-5" />
-                <span>Forgot</span>
-              </button>
+            {back && (
+              <Tooltip content="Mark card as remembered" keyBinding="space">
+                <button
+                  className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-black/20 text-white/80"
+                  onClick={rememberCard}
+                >
+                  <CheckIcon className="w-4 h-4" />
+                  <span>Remembered</span>
+                </button>
+              </Tooltip>
             )}
 
-            {showCardBack && (
-              <button
-                className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-[#f1f1f1] text-[#0f0f0f]"
-                onClick={rememberCard}
-              >
-                <CheckIcon className="w-5 h-5" />
-                <span>Remembered</span>
-              </button>
+            {srs === 'srs' && back && (
+              <Tooltip content="Mark card as forgotten" keyBinding="F">
+                <button
+                  className="inline-flex items-center space-x-2 rounded-full h-9 px-4 bg-white/10 text-[#f1f1f1]"
+                  onClick={forgetCard}
+                >
+                  <Cross1Icon className="w-4 h-4" />
+                  <span>Forgot</span>
+                </button>
+              </Tooltip>
             )}
+          </div>
+        </div>
+      )}
+
+      {progress === indexes.length && (
+        <div className="flex flex-col items-center justify-center">
+          <div className="h-[calc((100vh-600px)*0.3)]"></div>
+          <div className="w-[200px] flex flex-col space-y-6">
+            <div className="text-lg font-bold">No more cards left.</div>
+            <div>
+              <div className="">
+                Remembered:{' '}
+                <span className="inline-flex font-bold items-center h-5 rounded-full px-2 text-sm bg-green-300 text-black/80">
+                  {remembered}
+                </span>
+              </div>
+              <div className="">
+                Skipped:{' '}
+                <span className="inline-flex font-bold items-center h-5 rounded-full px-2 text-sm bg-gray-300 text-black/80">
+                  {skipped}
+                </span>
+              </div>
+            </div>
+            <Link
+              href="/vocabulary/all"
+              className="inline-flex max-w-max items-center bg-white/5 h-8 rounded-md border border-transparent whitespace-nowrap px-3"
+            >
+              Back to vocab
+            </Link>
           </div>
         </div>
       )}
