@@ -5,7 +5,9 @@ import { useRxCollection } from 'rxdb-hooks'
 import {
   PlusIcon,
   ArchiveIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@radix-ui/react-icons'
 
 import { WordDocType } from '../../lib/types'
@@ -13,13 +15,7 @@ import MoreOptionsMenu from '../../components/MoreOptionsMenu'
 import EditDialog from '../../components/EditDialog'
 import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
-import {
-  deleteCard,
-  _formatCardContent,
-  _calculateDueDate
-} from '../../lib/words'
 import FilterMenu from '../../components/FilterMenu'
-import TableSearch from '../../components/TableSearch'
 
 export default function Vocabulary() {
   const router = useRouter()
@@ -99,7 +95,7 @@ export default function Vocabulary() {
   ])
 
   const deleteWord = async (id: string) => {
-    await deleteCard({ collection, id })
+    await collection?.findOne(id).remove()
   }
 
   const goToNextPage = () => {
@@ -126,72 +122,105 @@ export default function Vocabulary() {
   // VOCABULARY PAGE
   return (
     <>
-      {/* Tabs, add & review */}
-      <div className="border-b border-white border-opacity-20 flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="py-3 relative">
-            <Link
-              href="/vocabulary/all/"
-              className="inline-flex items-center h-7 rounded px-2"
-            >
-              All
-            </Link>
-
-            {router.asPath === '/vocabulary/all' && (
-              <div className="absolute border-b-2 border-white border-opacity-80 px-2 left-2 right-2 bottom-0"></div>
-            )}
+      <section className="flex flex-col space-y-2">
+        {/* Toggle & review */}
+        <div className="flex space-x-4 items-center justify-between">
+          <div className="flex space-x-2 items-center justify-between">
+            {[
+              {
+                url: '/vocabulary/all/',
+                active: srs === 'all',
+                label: 'All'
+              },
+              {
+                url: '/vocabulary/srs/',
+                active: srs === 'srs',
+                label: 'Due for Review'
+              }
+            ].map(({ url, active, label }) => (
+              <Link
+                key={url}
+                href={url}
+                className={`inline-flex items-center rounded-lg h-8 bg-white/5 px-4 ${
+                  active ? 'bg-white/60 text-black/80' : ''
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
-          <div className="py-3 relative">
+
+          <div className="flex items-center space-x-2">
+            <EditDialog modal={true}>
+              <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
+                <PlusIcon className="w-5 h-5" />
+                <span>Add</span>
+              </button>
+            </EditDialog>
             <Link
-              href="/vocabulary/srs/"
-              className="inline-flex items-center h-7 rounded px-2"
+              href={`${srs}/review`}
+              className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
             >
-              Due for SRS
+              <ArchiveIcon className="w-4 h-4" />
+              <span>Review</span>
             </Link>
-            {router.asPath === '/vocabulary/srs' && (
-              <div className="absolute border-b-2 border-white border-opacity-80 px-2 left-2 right-2 bottom-0"></div>
-            )}
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {/* Add word */}
-          <EditDialog modal={true}>
-            <button className="inline-flex items-center space-x-2">
-              <PlusIcon className="w-5 h-5" />
-              <span>Add</span>
-            </button>
-          </EditDialog>
+        {/* Search & view */}
+        <div className="border-b border-white/20 flex items-center justify-between py-4 space-x-4">
+          {/* Search */}
+          <div className="relative w-full">
+            <input
+              type="sumbit"
+              value={search}
+              placeholder="Search"
+              className="bg-transparent border border-white/40 rounded-2xl h-[30px] w-full pl-8"
+              onInput={(e) => setSearch(e.currentTarget.value)}
+            />
+            <div className="absolute top-0 left-0 h-[30px] w-[30px] flex items-center justify-center">
+              <MagnifyingGlassIcon className="w-5 h-5" />
+            </div>
+          </div>
 
-          <Link
-            href={`${srs}/review`}
-            className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
-          >
-            <ArchiveIcon className="w-4 h-4" />
-            <span>Review</span>
-            <span className="text-xs py-1 px-1.5 bg-black/10 rounded">
-              {wordDocuments?.length || '0'}
-            </span>
-          </Link>
+          <div className="flex items-center space-x-2 justify-end">
+            {/* Pagination */}
+            <div className="flex items-center border border-white/40 rounded h-7 divide-x-2 divide-white/20">
+              <button
+                onClick={goToPreviousPage}
+                className="h-7 px-1.5 disabled:text-white/20"
+                disabled={wordDocumentsOffset === 0}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={goToNextPage}
+                className="h-7 px-1.5 disabled:text-white/20"
+                disabled={
+                  wordDocumentsOffset + Number(cards) >= wordDocumentsCount
+                }
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
 
-          {/* Sort, filter & search */}
-          <TableSearch input={search} changeInput={setSearch} />
-
-          <FilterMenu
-            cards={cards}
-            sort={sort}
-            status={status}
-            ascending={ascending}
-            changeCards={(value) => {
-              setCards(value)
-              setWordDocumentsOffset(0)
-            }}
-            changeSort={setSort}
-            changeStatus={setStatus}
-            changeAscending={setAscending}
-          />
+            {/* View */}
+            <FilterMenu
+              cards={cards}
+              sort={sort}
+              status={status}
+              ascending={ascending}
+              changeCards={(value) => {
+                setCards(value)
+                setWordDocumentsOffset(0)
+              }}
+              changeSort={setSort}
+              changeStatus={setStatus}
+              changeAscending={setAscending}
+            />
+          </div>
         </div>
-      </div>
+      </section>
 
       {wordDocuments?.length === 0 && <div>No data</div>}
 
@@ -199,18 +228,18 @@ export default function Vocabulary() {
       {wordDocuments?.length !== 0 && (
         <>
           {/* <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20"> */}
-          <div className="flex flex-col space-y-2">
-            <div className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2">
-              <div>Word</div>
+          <div className="flex flex-col rounded-lg divide-y-[1px] divide-white/20 ">
+            <div className="grid items-center grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 h-8">
+              <div>{`Word (${wordDocuments?.length || 0})`}</div>
               <div>Meaning</div>
               <div>Status</div>
             </div>
+
             {wordDocuments &&
               wordDocuments.map((doc) => (
                 <div
                   key={doc.id}
-                  // className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4"
-                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 border border-white/20 rounded-lg items-center"
+                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 items-center"
                 >
                   <div className="text-lg">{doc.word}</div>
                   <div className="text-sm">{doc.meaning}</div>
@@ -234,17 +263,6 @@ export default function Vocabulary() {
                   </div>
                 </div>
               ))}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between">
-            <div>{`Showing ${wordDocumentsOffset + 1}-${
-              wordDocumentsOffset + (wordDocuments?.length || 0)
-            } of ${wordDocumentsCount} Entries`}</div>
-            <div className="inline-flex items-center space-x-2">
-              <button onClick={goToPreviousPage}>Prev page</button>
-              <button onClick={goToNextPage}>Next page</button>
-            </div>
           </div>
         </>
       )}
