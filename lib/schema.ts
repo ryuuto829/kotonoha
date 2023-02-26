@@ -51,9 +51,11 @@ export const cardSchema = {
     'meaning',
     'createdAt',
     'updatedAt',
-    'lastReviewedAt',
-    'dueDate',
-    'reviewStatus'
+    'lastReviewed',
+    'lastReviewedCorrect',
+    'srsDueDate',
+    'status',
+    'statusChangedDate'
   ]
 } as const
 

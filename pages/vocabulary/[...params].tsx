@@ -38,7 +38,7 @@ export default function Vocabulary() {
   useEffect(() => {
     let querySub: any
 
-    if (collection && srs && !review) {
+    if (collection && srs) {
       const query = collection
         .find({
           selector: {
@@ -88,7 +88,7 @@ export default function Vocabulary() {
     ascending,
     sort,
     wordDocumentsOffset,
-    review,
+    // review,
     status,
     search,
     srs
@@ -227,7 +227,6 @@ export default function Vocabulary() {
       {/* Vocab list */}
       {wordDocuments?.length !== 0 && (
         <>
-          {/* <div className="flex flex-col space-y-2 border-y border-white border-opacity-20 divide-y divide-white divide-opacity-20"> */}
           <div className="flex flex-col rounded-lg divide-y-[1px] divide-white/20 ">
             <div className="grid items-center grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 h-8">
               <div>{`Word (${wordDocuments?.length || 0})`}</div>
@@ -239,7 +238,7 @@ export default function Vocabulary() {
               wordDocuments.map((doc) => (
                 <div
                   key={doc.id}
-                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 items-center"
+                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 items-center whitespace-pre-wrap"
                 >
                   <div className="text-lg">{doc.word}</div>
                   <div className="text-sm">{doc.meaning}</div>

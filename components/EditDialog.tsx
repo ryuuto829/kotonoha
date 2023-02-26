@@ -135,14 +135,16 @@ export default function EditDialog({
 
         {/* Content */}
         <Dialog.Portal>
-          <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md grid gap-4 bg-[rgb(32,32,32)] p-6 mt-5 rounded-xl shadow-md">
-            <EditContent
-              close={handleClose}
-              textContent={textContent}
-              handleWordSave={saveWord}
-              initialStatus={doc?.status}
-            />
-          </Dialog.Content>
+          <Dialog.Overlay className="fixed inset-0 flex overflow-y-auto z-50 items-start justify-center scroll-p-10">
+            <Dialog.Content className="w-full max-w-md my-14 bg-[rgb(32,32,32)] p-6 rounded-xl shadow-md">
+              <EditContent
+                close={handleClose}
+                textContent={textContent}
+                handleWordSave={saveWord}
+                initialStatus={doc?.status}
+              />
+            </Dialog.Content>
+          </Dialog.Overlay>
         </Dialog.Portal>
       </Dialog.Root>
     )

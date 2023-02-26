@@ -57,14 +57,17 @@ export default function Dictionary() {
   // Empty
   if (!searchKeyword) {
     return (
-      <div className="w-full max-w-md h-full mx-auto flex items-center space-x-4 text-white/40">
-        <div className="flex-1">
-          <MagnifyingGlassIcon className="w-10 h-10" />
+      <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center text-white/40">
+        <div className="h-[calc((100vh-400px)*0.3)]"></div>
+        <div className="flex items-center space-x-4">
+          <div className="flex-1">
+            <MagnifyingGlassIcon className="w-10 h-10" />
+          </div>
+          <span>
+            Start typing any Japanese text or English word in the search box
+            above to begin searching
+          </span>
         </div>
-        <span>
-          Start typing any Japanese text or English word in the search box above
-          to begin searching
-        </span>
       </div>
     )
   }
