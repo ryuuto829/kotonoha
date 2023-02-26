@@ -12,4 +12,13 @@ pnpm run dev
 
 ## Todo
 
-- [ ] Search a word using Jisho API
+- [x] Dictionary search with save option
+- [x] Kanji details
+- [x] View options and search for vocabulary collection
+- [x] Edit dialog to save / update card
+- [x] Vocabulary collection pagination
+- [x] SRS and custom mode
+- [x] Review progress and updates
+- [ ] More card options
+- [ ] Dashboard statistics
+- [ ] Profile menu
