@@ -12,8 +12,9 @@ import {
 import shuffle from 'lodash/shuffle'
 
 import type { WordDocType } from '../lib/types'
-import { _updateDueDate } from '../lib/words'
+import { _updateDueDate, _formatDueDate } from '../lib/words'
 import Tooltip from '../components/Tooltip'
+import { useRxCollection } from 'rxdb-hooks'
 
 /**
  * Generate a collection of document indexes
@@ -43,6 +44,8 @@ export default function Review({
   srs: string
 }) {
   const [indexes, setIndexes] = useState(getInitialIndexes(cards.length))
+
+  const progressCollection = useRxCollection('progress')
 
   const [progress, setProgress] = useState(0)
   const [back, setBack] = useState(false)

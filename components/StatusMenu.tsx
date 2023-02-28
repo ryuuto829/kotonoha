@@ -60,7 +60,7 @@ export default function StatusMenu({
         <DropdownMenu.Content
           align="start"
           sideOffset={5}
-          className={`py-2 rounded bg-[rgb(37,37,37)] text-sm text-white text-opacity-80 w-[230px]`}
+          className={`py-2 rounded bg-[rgb(37,37,37)] text-sm text-white text-opacity-80 w-[230px] z-50`}
         >
           <DropdownMenu.RadioGroup
             value={statusOption.toString()}

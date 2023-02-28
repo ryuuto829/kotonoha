@@ -10,7 +10,7 @@ import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 
 import { cardSchema, profileSchema, progressSchema } from './schema'
 
-removeRxDatabase('kotonoha-db', getRxStorageDexie())
+// removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
 /**
  * Enable mango-query-syntax with chained methods
@@ -73,7 +73,46 @@ export const create = async () => {
   }
 
   // hooks
-  // ...
+
+  db.cards.postInsert(async function (data, rxDocument) {
+    console.log(data)
+    const progressDoc = await db.progress
+      ?.findOne(data.updatedAt.split('T')[0])
+      .exec()
+
+    const cardsLearned = data.status >= 4 ? 1 : 0
+    const pointsEarned = 1 * data.status
+
+    if (progressDoc) {
+      await progressDoc.update({
+        $inc: {
+          cardsAdded: 1,
+          pointsEarned,
+          cardsLearned
+        }
+      })
+    } else {
+      await db.progress?.insert({
+        name: data.updatedAt.split('T')[0],
+        cardsAdded: 1,
+        cardsReviewed: 0,
+        pointsEarned,
+        cardsLearned
+      })
+    }
+
+    await userDoc.update({
+      $inc: {
+        points: pointsEarned
+      }
+    })
+
+    console.log(progressDoc)
+  }, false)
+
+  db.cards.postSave(function (data, rxDocument) {
+    console.log(data)
+  }, false)
 
   // maybe sync collection to a remote
   // ...

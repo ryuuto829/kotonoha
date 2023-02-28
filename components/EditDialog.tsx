@@ -75,8 +75,6 @@ export default function EditDialog({
   children: ReactElement
 }) {
   const cardsCollection = useRxCollection('cards')
-  const profilesCollection = useRxCollection('profiles')
-  const profileDoc = profilesCollection?.findOne('user')
 
   const [open, setOpen] = useState(false)
 
@@ -97,7 +95,10 @@ export default function EditDialog({
             status,
             doc?.lastReviewed || doc?.createdAt
           ),
-          status
+          status,
+          previousStatus: doc.status,
+          statusChangedDate:
+            doc.status === status ? doc.statusChangedDate : today
         }
       })
     }
@@ -111,15 +112,11 @@ export default function EditDialog({
       meaning: meaning || '',
       createdAt: today,
       updatedAt: today,
-      lastReviewed: '',
+      lastReviewed: null,
       srsDueDate: _calculateDueDate(status),
-      status: status
-    })
-
-    await profileDoc?.update({
-      $inc: {
-        points: 0.5
-      }
+      status: status,
+      previousStatus: null,
+      statusChangedDate: today
     })
   }
 
@@ -135,7 +132,7 @@ export default function EditDialog({
 
         {/* Content */}
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 flex overflow-y-auto z-50 items-start justify-center scroll-p-10">
+          <Dialog.Overlay className="fixed inset-0 flex overflow-y-auto z-20 items-start justify-center scroll-p-10">
             <Dialog.Content className="w-full max-w-md my-14 bg-[rgb(32,32,32)] p-6 rounded-xl shadow-md">
               <EditContent
                 close={handleClose}

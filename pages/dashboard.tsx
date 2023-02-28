@@ -73,16 +73,17 @@ const getStartEndDates = (period: string) => {
   let start, end
   const today = new Date()
   // Get number of days from the period name, ex.: 'last_7d' -> 7
-  const days = Number(period.replace(/\D/g, ''))
+  const numberOfPeriod = Number(period.replace(/\D/g, ''))
 
   if (period.endsWith('d')) {
-    start = new Date(today.valueOf() - 24 * 60 * 60 * 1000 * days)
+    start = new Date(today.valueOf() - 24 * 60 * 60 * 1000 * numberOfPeriod)
     end = today
   }
 
   if (period.endsWith('m')) {
-    start = new Date(today.getFullYear(), today.getMonth() - days, 2)
-    end = new Date(today.getFullYear(), today.getMonth(), 1)
+    start = new Date(today.getFullYear(), today.getMonth() - numberOfPeriod, 2)
+    // end = new Date(today.getFullYear(), today.getMonth(), 1)
+    end = today
   }
 
   return [formatISODate(start), formatISODate(end)]
@@ -102,7 +103,7 @@ const getDaysArray = (start, end) => {
 const getMonthArray = () => {
   const array = []
 
-  for (let i = 1; i < 7; i++) {
+  for (let i = 0; i < 6; i++) {
     array.push(
       new Date(new Date().getFullYear(), new Date().getMonth() - i, 2)
         .toISOString()
@@ -157,6 +158,8 @@ export default function Dashboard() {
         )
         .sort({ name: 'asc' })
         .exec()
+
+      console.log(progressDoc)
 
       if (progressDoc.length === 0) {
         setData([
@@ -246,75 +249,6 @@ export default function Dashboard() {
 
   return (
     <>
-      <button
-        onClick={async () => {
-          await collection?.bulkInsert([
-            {
-              name: '2023-02-21',
-              cardsAdded: 2,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-02-20',
-              cardsAdded: 10,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-02-19',
-              cardsAdded: 1,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-01-25',
-              cardsAdded: 5,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-02-01',
-              cardsAdded: 12,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-01-15',
-              cardsAdded: 22,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-01-20',
-              cardsAdded: 2,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-01-07',
-              cardsAdded: 1,
-              pointsEarned: 1
-            },
-            {
-              name: '2022-09-07',
-              cardsAdded: 8,
-              pointsEarned: 1
-            },
-            {
-              name: '2022-12-14',
-              cardsAdded: 18,
-              pointsEarned: 1
-            },
-            {
-              name: '2023-02-15',
-              cardsAdded: 5,
-              pointsEarned: 1
-            },
-            {
-              name: '2022-01-15',
-              cardsAdded: 15,
-              pointsEarned: 5
-            }
-          ])
-        }}
-      >
-        Insert data
-      </button>
-
       <div className="flex items-center space-x-2">
         <Menu
           option={period}

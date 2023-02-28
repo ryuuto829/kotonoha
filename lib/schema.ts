@@ -43,6 +43,11 @@ export const cardSchema = {
     statusChangedDate: {
       type: 'string',
       format: 'date-time'
+    },
+    previousStatus: {
+      type: 'number',
+      minimum: 1,
+      maximum: 5
     }
   },
   required: [
@@ -55,6 +60,7 @@ export const cardSchema = {
     'lastReviewedCorrect',
     'srsDueDate',
     'status',
+    'previousStatus',
     'statusChangedDate'
   ]
 } as const
