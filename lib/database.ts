@@ -59,21 +59,6 @@ export const create = async () => {
 
   console.log('DatabaseService: create collections')
 
-  /**
-   * Add default user account
-   */
-  const userDoc = await db.profiles.findOne('user').exec()
-  if (!userDoc) {
-    await db.profiles.upsert({
-      id: 'user',
-      username: 'user',
-      points: 0,
-      dateJoined: new Date().toISOString()
-    })
-
-    console.log('DatabaseService: create user')
-  }
-
   // hooks
 
   db.cards.postInsert(async function (data, rxDocument) {
@@ -103,11 +88,11 @@ export const create = async () => {
       })
     }
 
-    await userDoc.update({
-      $inc: {
-        points: pointsEarned
-      }
-    })
+    // await userDoc.update({
+    //   $inc: {
+    //     points: pointsEarned
+    //   }
+    // })
 
     console.log(progressDoc)
   }, false)

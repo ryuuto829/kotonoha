@@ -76,23 +76,17 @@ export const profileSchema = {
       type: 'string',
       maxLength: 100
     },
-    fullName: {
-      type: 'string'
-    },
     username: {
       type: 'string'
     },
     dateJoined: {
       type: 'string'
     },
-    setting: {
+    settings: {
       type: 'object'
-    },
-    points: {
-      type: 'number'
     }
   },
-  required: ['id', 'username', 'points', 'dateJoined']
+  required: ['id', 'username', 'settings', 'dateJoined']
 } as const
 
 export const progressSchema = {

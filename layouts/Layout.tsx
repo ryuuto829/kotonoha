@@ -115,17 +115,21 @@ function Menu() {
 
 export function Navbar() {
   const router = useRouter()
-  const collection = useRxCollection('profiles')
+  const collection = useRxCollection('progress')
 
-  const [points, setPoints] = useState()
+  const [points, setPoints] = useState(0)
 
   useEffect(() => {
     let querySub: any
 
-    const query = collection?.findOne('user')
+    const query = collection?.find()
 
     querySub = (query?.$.subscribe as any)((results) => {
-      setPoints(results?.points)
+      const points = results.reduce(
+        (acc, el) => acc + (el.pointsEarned || 0),
+        0
+      )
+      setPoints(points)
     })
 
     return () => querySub?.unsubscribe()
