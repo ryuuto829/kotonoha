@@ -7,6 +7,7 @@ import {
 import { getRxStorageDexie } from 'rxdb/plugins/dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
+import { RxDBJsonDumpPlugin } from 'rxdb/plugins/json-dump'
 
 import { cardSchema, profileSchema, progressSchema } from './schema'
 
@@ -17,6 +18,7 @@ import { cardSchema, profileSchema, progressSchema } from './schema'
  */
 addRxPlugin(RxDBQueryBuilderPlugin)
 addRxPlugin(RxDBUpdatePlugin)
+addRxPlugin(RxDBJsonDumpPlugin)
 
 /**
  * Dev Mode with readable error messages
