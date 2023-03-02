@@ -13,7 +13,7 @@ export default function Settings() {
     )}`
     const link = document.createElement('a')
     link.href = jsonString
-    link.download = `data-${Date.now()}.json`
+    link.download = `kotonoha-db-${Date.now()}.json`
 
     link.click()
   }
@@ -33,7 +33,7 @@ export default function Settings() {
   const deleteDate = async () => {
     await db.remove()
     /**
-     * Reload page to get a new instance of database
+     * Reload the page to get a new instance of database
      */
     router.reload(window.location.pathname)
   }

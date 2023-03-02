@@ -6,12 +6,25 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ComposedChart
+  ComposedChart,
+  Legend
 } from 'recharts'
 import { useEffect, useState } from 'react'
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { ChevronDownIcon, CheckIcon } from '@radix-ui/react-icons'
+
+import {
+  subDays,
+  subMonths,
+  eachDayOfInterval,
+  eachMonthOfInterval,
+  formatISO,
+  differenceInDays,
+  getUnixTime,
+  fromUnixTime,
+  parseISO
+} from 'date-fns'
 
 export const DEFAULT_PERIODS = ['last_7d', 'last_30d', 'last_6m', 'all']
 export const DEFAULT_METRICS = ['cardsAdded', 'pointsEarned']
@@ -63,69 +76,63 @@ export function Menu({
   )
 }
 
-export function formatISODate(date?: Date) {
-  return date?.toISOString().split('T')[0]
-}
-
-const getStartEndDates = (period: string) => {
-  if (period === 'all') return []
-
+const getStartEndDates = ({
+  dailyPeriod,
+  monthlyPeriod,
+  allPeriod,
+  periodNumber
+}: {
+  dailyPeriod: boolean
+  monthlyPeriod: boolean
+  allPeriod: boolean
+  periodNumber: number
+}) => {
   let start, end
   const today = new Date()
-  // Get number of days from the period name, ex.: 'last_7d' -> 7
-  const numberOfPeriod = Number(period.replace(/\D/g, ''))
 
-  if (period.endsWith('d')) {
-    start = new Date(today.valueOf() - 24 * 60 * 60 * 1000 * numberOfPeriod)
+  if (dailyPeriod) {
+    start = subDays(today, periodNumber)
     end = today
   }
 
-  if (period.endsWith('m')) {
-    start = new Date(today.getFullYear(), today.getMonth() - numberOfPeriod, 2)
-    // end = new Date(today.getFullYear(), today.getMonth(), 1)
+  if (monthlyPeriod) {
+    start = subMonths(today, periodNumber)
     end = today
   }
 
-  return [formatISODate(start), formatISODate(end)]
-}
-
-const getDaysArray = (start, end) => {
-  for (
-    var arr = [], dt = new Date(start);
-    dt <= new Date(end);
-    dt.setDate(dt.getDate() + 1)
-  ) {
-    arr.push(new Date(dt).toISOString().split('T')[0])
-  }
-  return arr
-}
-
-const getMonthArray = () => {
-  const array = []
-
-  for (let i = 0; i < 6; i++) {
-    array.push(
-      new Date(new Date().getFullYear(), new Date().getMonth() - i, 2)
-        .toISOString()
-        .split('T')[0]
-    )
+  if (allPeriod) {
+    return []
   }
 
-  return array.reverse()
+  return [start, end]
 }
 
-const getAllArray = (start) => {
-  const array = []
+const getDaysArray = (start: Date, end: Date) => {
+  return eachDayOfInterval({ start, end }).map((x) =>
+    formatISO(x, { representation: 'date' })
+  )
+}
 
-  const diff = (Date.now() - new Date(start).valueOf()) / 5
+const getMonthArray = (start: Date, end: Date) => {
+  return eachMonthOfInterval({ start, end }).map((x) =>
+    formatISO(x, { representation: 'date' })
+  )
+}
 
-  for (let i = 0; i < 6; i++) {
-    array.push(
-      new Date(new Date(start).valueOf() + diff * i).toISOString().split('T')[0]
-    )
+const getAllArray = (start: string) => {
+  const today = new Date()
+  const diff = differenceInDays(today, new Date(start))
+
+  if (diff <= 3) {
+    return getDaysArray(subDays(today, 3), today)
   }
 
-  return array
+  const sum = (getUnixTime(today) - getUnixTime(parseISO(start))) / 3
+
+  return Array(4)
+    .fill(undefined)
+    .map((_, index) => getUnixTime(parseISO(start)) + sum * index)
+    .map((x) => formatISO(fromUnixTime(x), { representation: 'date' }))
 }
 
 export default function Dashboard() {
@@ -140,17 +147,31 @@ export default function Dashboard() {
       return
     }
 
-    const getChartData = async (metric, period) => {
-      const [start, end] = getStartEndDates(period)
+    const getChartData = async (metric: string, period: string) => {
+      const dailyPeriod = period.endsWith('d')
+      const monthlyPeriod = period.endsWith('m')
+      const allPeriod = period === 'all'
+      /**
+       * Get number of days  or months from the period name,
+       * ex. 'last_7d' = 7, 'last_6m' = 6
+       */
+      const periodNumber = Number(period.replace(/\D/g, ''))
+
+      const [start, end] = getStartEndDates({
+        dailyPeriod,
+        monthlyPeriod,
+        allPeriod,
+        periodNumber
+      })
 
       const progressDoc = await collection
         ?.find(
-          period !== 'all'
+          allPeriod && start && end
             ? {
                 selector: {
                   name: {
-                    $gte: start,
-                    $lt: end
+                    $gte: formatISO(start, { representation: 'date' }),
+                    $lt: formatISO(end, { representation: 'date' })
                   }
                 }
               }
@@ -159,24 +180,11 @@ export default function Dashboard() {
         .sort({ name: 'asc' })
         .exec()
 
-      console.log(progressDoc)
-
-      if (progressDoc.length === 0) {
-        setData([
-          {
-            name: 'No Data',
-            daily: 0,
-            cumulative: 0
-          }
-        ])
-        return
-      }
-
       let chartData
       /**
        * Chart data daily
        */
-      if (period == 'last_7d' || period === 'last_30d') {
+      if (dailyPeriod) {
         chartData = getDaysArray(start, end).reduce((data, name, index) => {
           const daily = progressDoc.find((x) => x.name === name)?.[metric] || 0
           const previousCumulative = data[index - 1]?.cumulative || 0
@@ -195,8 +203,8 @@ export default function Dashboard() {
       /**
        * Chart data monthly
        */
-      if (period === 'last_6m') {
-        chartData = getMonthArray().reduce((data, name, index) => {
+      if (monthlyPeriod) {
+        chartData = getMonthArray(start, end).reduce((data, name, index) => {
           const daily =
             progressDoc
               .filter((x) => x.name.startsWith(name.slice(0, 7)))
@@ -215,7 +223,7 @@ export default function Dashboard() {
         }, [])
       }
 
-      if (period === 'all') {
+      if (allPeriod) {
         chartData = getAllArray(progressDoc[0]?.name).reduce(
           (data, name, index, arr) => {
             const daily =
@@ -249,6 +257,19 @@ export default function Dashboard() {
 
   return (
     <>
+      {/* <button
+        onClick={() => {
+          collection?.insert({
+            name: '2023-01-02',
+            pointsEarned: 4,
+            cardsAdded: 4,
+            cardsLearned: 4,
+            cardsReviewed: 4
+          })
+        }}
+      >
+        Add
+      </button> */}
       <div className="flex items-center space-x-2">
         <Menu
           option={period}
@@ -283,8 +304,20 @@ export default function Dashboard() {
         <YAxis />
         {/* <YAxis /> */}
         <CartesianGrid strokeDasharray="3 3" />
-        <Tooltip />
+        <Tooltip labelClassName="text-black" />
         <Area
+          // label={({ x, y, stroke, value }) => (
+          //   <text
+          //     x={x}
+          //     y={y}
+          //     dy={-4}
+          //     fill={'white'}
+          //     fontSize={10}
+          //     textAnchor="middle"
+          //   >
+          //     {value}
+          //   </text>
+          // )}
           type="monotone"
           dataKey="cumulative"
           stroke="#8884d8"
@@ -298,6 +331,7 @@ export default function Dashboard() {
           fillOpacity={1}
           fill="url(#colorPv)"
         />
+        <Legend verticalAlign="bottom" height={36} />
       </ComposedChart>
     </>
   )
