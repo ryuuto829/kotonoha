@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { ChevronDownIcon, CheckIcon } from '@radix-ui/react-icons'
+import { Cross1Icon, CheckIcon, StackIcon } from '@radix-ui/react-icons'
 import { useEffect, useState } from 'react'
 import { useRxCollection } from 'rxdb-hooks'
 import { DeckDocument } from '../lib/types'
@@ -28,13 +28,15 @@ export default function SelectDeckMenu({
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
         aria-label="Sorting options"
-        className="inline-flex items-center space-x-2 p-1.5 text-base h-7 rounded-[3px] whitespace-nowrap hover:bg-white hover:bg-opacity-5 data-[state=open]:bg-white data-[state=open]:bg-opacity-5"
+        className="flex items-center text-sm text-white border border-white border-opacity-20 px-3 rounded-[3px] h-8 space-x-2"
       >
-        <div className={`mr-1.5 rounded-full h-2 w-2`}></div>
-        <span>
-          {decks?.find((x) => x.id === option)?.name || 'default deck'}
-        </span>
-        <ChevronDownIcon className="w-4 h-4" />
+        <StackIcon />
+        <span>{decks?.find((x) => x.id === option)?.name || 'Deck'}</span>
+        {option && (
+          <div onClick={() => changeOption('')}>
+            <Cross1Icon />
+          </div>
+        )}
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>

@@ -12,20 +12,20 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { CardDocument } from '../lib/types'
 import SelectDeckMenu from './SelectDeckMenu'
 
-export function EditContent({
+function EditorContent({
   close,
-  doc,
+  card,
   textContent
 }: {
   close: () => void
-  doc?: CardDocument
+  card?: CardDocument
   textContent?: string
 }) {
   const cardsCollection = useRxCollection('cards')
 
   const inputRef = useRef<HTMLDivElement>(null)
-  const [status, setStatus] = useState(doc?.status || 1)
-  const [deckId, setDeckId] = useState(null)
+  const [status, setStatus] = useState(card?.status || 1)
+  const [deckId, setDeckId] = useState('')
 
   const saveWord = async () => {
     const [word, meaning] = _formatCardContent(
@@ -36,20 +36,20 @@ export function EditContent({
     /**
      * Update word
      */
-    if (doc) {
-      return await doc?.update({
+    if (card) {
+      return await card?.update({
         $set: {
           word: word || '',
           meaning: meaning || '',
           updatedAt: today,
           srsDueDate: _updateDueDate(
             status,
-            doc?.lastReviewed || doc?.createdAt
+            card?.lastReviewed || card?.createdAt
           ),
           status,
-          previousStatus: doc.status,
+          previousStatus: card.status,
           statusChangedDate:
-            doc.status === status ? doc.statusChangedDate : today
+            card.status === status ? card.statusChangedDate : today
         }
       })
     }
@@ -68,7 +68,7 @@ export function EditContent({
       status: status,
       previousStatus: null,
       statusChangedDate: today,
-      deckId: deckId
+      deckId: deckId || null
     })
   }
 
@@ -125,14 +125,16 @@ export default function CardEditor({
   const [open, setOpen] = useState(false)
 
   const content = (
-    <EditContent
+    <EditorContent
       close={() => setOpen(false)}
       textContent={textContent}
-      doc={doc}
+      card={doc}
     />
   )
 
-  // MODAL VIEW
+  /**
+   * Modal view
+   */
   if (modal) {
     return (
       <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -148,7 +150,9 @@ export default function CardEditor({
     )
   }
 
-  // INLINE VIEW
+  /**
+   * Inline view (used on the `dictionary` page)
+   */
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen}>
       <Collapsible.Trigger asChild>{children}</Collapsible.Trigger>

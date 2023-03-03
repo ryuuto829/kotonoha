@@ -7,10 +7,12 @@ import {
   ChevronDownIcon,
   GearIcon,
   HamburgerMenuIcon,
-  HomeIcon
+  HomeIcon,
+  PlusIcon
 } from '@radix-ui/react-icons'
 import PointIcon from './PointIcon'
 import { ProgressDocument } from '../lib/types'
+import CardEditor from './CardEditor'
 
 function Menu() {
   return (
@@ -101,6 +103,13 @@ export default function Navbar({
         </Link>
         <div className="w-full flex items-center justify-end space-x-4">
           <div className="flex items-center space-x-2">
+            <CardEditor modal={true}>
+              <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
+                <PlusIcon className="w-5 h-5" />
+                {/* <span>Add</span> */}
+              </button>
+            </CardEditor>
+
             <div className="flex items-center space-x-2">
               <PointIcon className="w-5 h-5 fill-white/80" />
               <span>{points.toFixed(2)}</span>

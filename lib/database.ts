@@ -122,6 +122,24 @@ export const create = async () => {
     console.log(await db.progress.find().exec())
   }, false)
 
+  db.decks.postRemove(async (data) => {
+    const cards = await db.cards
+      .find({
+        selector: {
+          deckId: data.id
+        }
+      })
+      .exec()
+
+    cards.forEach(async (x) => {
+      await x.update({
+        $set: {
+          deckId: null
+        }
+      })
+    })
+  }, false)
+
   // maybe sync collection to a remote
   // ...
 

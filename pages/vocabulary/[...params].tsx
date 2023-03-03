@@ -3,23 +3,25 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useRxCollection } from 'rxdb-hooks'
 import {
-  PlusIcon,
+  // PlusIcon,
   ArchiveIcon,
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@radix-ui/react-icons'
 
-import { CardDocument } from '../../lib/types'
+import { CardDocument, DeckDocument } from '../../lib/types'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
-import EditDialog from '../../components/CardEditor'
+// import CardEditor from '../../components/CardEditor'
 import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
 import FilterMenu from '../../components/FilterMenu'
+import DeckMenu from '../../components/DeckMenu'
 
 export default function Vocabulary() {
   const router = useRouter()
   const collection = useRxCollection<CardDocument>('cards')
+  const decksCollection = useRxCollection('decks')
 
   // const [srs, review] = router.query?.params || []
   const [srs, review] = router.asPath.split('/').slice(2)
@@ -37,6 +39,9 @@ export default function Vocabulary() {
 
   const [wordDocumentsOffset, setWordDocumentsOffset] = useState(0)
   const [wordDocumentsCount, setWordDocumentsCount] = useState(0)
+
+  const [deck, setDeck] = useState<DeckDocument>()
+  const [deckName, setDeckName] = useState('')
 
   useEffect(() => {
     let querySub: any
@@ -80,7 +85,7 @@ export default function Vocabulary() {
 
       querySub = (query.$.subscribe as any)(
         (results: WordDocType[] | undefined) => {
-          console.log(results)
+          // console.log(results)
 
           if (results) {
             // 1. Update all documents count
@@ -105,6 +110,16 @@ export default function Vocabulary() {
     search,
     srs
   ])
+
+  useEffect(() => {
+    const query = decksCollection?.findOne(srs)
+    const querySub = (query?.$.subscribe as any)((doc: DeckDocument) => {
+      setDeck(doc)
+      setDeckName(doc?.name)
+    })
+
+    return () => querySub?.unsubscribe()
+  }, [decksCollection, srs])
 
   const deleteWord = async (id: string) => {
     await collection?.findOne(id).remove()
@@ -137,7 +152,8 @@ export default function Vocabulary() {
       <section className="flex flex-col space-y-2">
         {/* Toggle & review */}
         <div className="flex space-x-4 items-center justify-between">
-          <div className="flex space-x-2 items-center justify-between">
+          <h1 className="text-xl font-bold">{deckName || 'All'}</h1>
+          {/* <div className="flex space-x-2 items-center justify-between">
             {[
               {
                 url: '/vocabulary/all/',
@@ -160,15 +176,15 @@ export default function Vocabulary() {
                 {label}
               </Link>
             ))}
-          </div>
+          </div> */}
 
           <div className="flex items-center space-x-2">
-            <EditDialog modal={true}>
+            {/* <CardEditor modal={true}>
               <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
                 <PlusIcon className="w-5 h-5" />
                 <span>Add</span>
               </button>
-            </EditDialog>
+            </CardEditor> */}
             <Link
               href={`${srs}/review`}
               className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
@@ -215,7 +231,6 @@ export default function Vocabulary() {
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
-
             {/* View */}
             <FilterMenu
               cards={cards}
@@ -230,6 +245,8 @@ export default function Vocabulary() {
               changeStatus={setStatus}
               changeAscending={setAscending}
             />
+
+            <DeckMenu deck={deck} />
           </div>
         </div>
       </section>
