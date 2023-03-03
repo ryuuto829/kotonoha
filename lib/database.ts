@@ -9,7 +9,7 @@ import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 import { RxDBJsonDumpPlugin } from 'rxdb/plugins/json-dump'
 
-import { cardSchema, profileSchema, progressSchema } from './schema'
+import { cardSchema, profileSchema, progressSchema, deckSchema } from './schema'
 
 // removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
@@ -54,6 +54,9 @@ export const create = async () => {
     },
     progress: {
       schema: progressSchema
+    },
+    decks: {
+      schema: deckSchema
     }
   })
 

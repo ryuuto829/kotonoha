@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { PlusIcon } from '@radix-ui/react-icons'
 import { _formatCardContent, _calculateDueDate } from '../lib/words'
 import type { WordResult } from '../lib/types'
-import EditDialog from './EditDialog'
+import EditDialog from './CardEditor'
 
 export default function WordCard({ word }: { word: WordResult }) {
   const [mainReading, ...otherReadings] = word.japanese

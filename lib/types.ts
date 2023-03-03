@@ -6,7 +6,7 @@ import {
   RxDocument,
   RxCollection
 } from 'rxdb'
-import { cardSchema, progressSchema } from './schema'
+import { cardSchema, progressSchema, deckSchema } from './schema'
 
 /**
  * Jisho API
@@ -83,13 +83,18 @@ export type KanjiStrokePath = {
  */
 const cardsSchemaTyped = toTypedRxJsonSchema(cardSchema)
 const progressSchemaTyped = toTypedRxJsonSchema(progressSchema)
+const deckSchemaTyped = toTypedRxJsonSchema(deckSchema)
 
-export type WordDocType = RxDocument<
+export type CardDocument = RxDocument<
   ExtractDocumentTypeFromTypedRxJsonSchema<typeof cardsSchemaTyped>
 >
 
-export type UserDocType = RxDocument<
+export type ProgressDocument = RxDocument<
   ExtractDocumentTypeFromTypedRxJsonSchema<typeof progressSchemaTyped>
 >
 
-export type WordsCollectionType = RxCollection<WordDocType, {}, {}, {}>
+export type DeckDocument = RxDocument<
+  ExtractDocumentTypeFromTypedRxJsonSchema<typeof deckSchemaTyped>
+>
+
+export type CardsCollection = RxCollection<CardDocument, {}, {}, {}>

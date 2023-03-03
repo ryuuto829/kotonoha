@@ -48,6 +48,9 @@ export const cardSchema = {
       type: 'number',
       minimum: 1,
       maximum: 5
+    },
+    deckId: {
+      type: 'string'
     }
   },
   required: [
@@ -87,6 +90,24 @@ export const profileSchema = {
     }
   },
   required: ['id', 'username', 'settings', 'dateJoined']
+} as const
+
+export const deckSchema = {
+  title: 'deck schema',
+  description: 'deck',
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    name: {
+      type: 'string'
+    }
+  },
+  required: ['id', 'name']
 } as const
 
 export const progressSchema = {

@@ -10,20 +10,23 @@ import {
   ChevronRightIcon
 } from '@radix-ui/react-icons'
 
-import { WordDocType } from '../../lib/types'
+import { CardDocument } from '../../lib/types'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
-import EditDialog from '../../components/EditDialog'
+import EditDialog from '../../components/CardEditor'
 import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
 import FilterMenu from '../../components/FilterMenu'
 
 export default function Vocabulary() {
   const router = useRouter()
-  const collection = useRxCollection<WordDocType>('cards')
+  const collection = useRxCollection<CardDocument>('cards')
 
-  const [srs, review] = router.query?.params || []
+  // const [srs, review] = router.query?.params || []
+  const [srs, review] = router.asPath.split('/').slice(2)
 
-  const [wordDocuments, setWordDocuments] = useState<WordDocType[] | null>(null)
+  const [wordDocuments, setWordDocuments] = useState<CardDocument[] | null>(
+    null
+  )
 
   const [cards, setCards] = useState('25')
   const [sort, setSort] = useState('createdAt')
@@ -40,28 +43,37 @@ export default function Vocabulary() {
 
     if (collection && srs) {
       const query = collection
-        .find({
-          selector: {
-            srsDueDate: {
-              $or: [
-                {
+        .find(
+          srs === 'all' || srs === 'srs'
+            ? {
+                selector: {
                   srsDueDate: {
-                    $lte:
-                      srs === 'srs' && new Date().toISOString().split('T')[0],
-                    $ne: ''
+                    $or: [
+                      {
+                        srsDueDate: {
+                          $lte:
+                            srs === 'srs' &&
+                            new Date().toISOString().split('T')[0],
+                          $ne: ''
+                        }
+                      },
+                      { srsDueDate: { $gte: srs !== 'srs' && '' } }
+                    ]
+                  },
+                  status: {
+                    $in: status.map((x) => Number(x))
+                  },
+                  word: {
+                    $regex: search !== null ? new RegExp(`^${search}`) : ''
                   }
-                },
-                { srsDueDate: { $gte: srs !== 'srs' && '' } }
-              ]
-            },
-            status: {
-              $in: status.map((x) => Number(x))
-            },
-            word: {
-              $regex: search !== null ? new RegExp(`^${search}`) : ''
-            }
-          }
-        })
+                }
+              }
+            : {
+                selector: {
+                  deckId: srs
+                }
+              }
+        )
         .sort({ [sort]: ascending ? 1 : -1 })
         .skip(wordDocumentsOffset)
         .limit(Number(cards))
@@ -88,7 +100,7 @@ export default function Vocabulary() {
     ascending,
     sort,
     wordDocumentsOffset,
-    // review,
+    review,
     status,
     search,
     srs
@@ -115,7 +127,7 @@ export default function Vocabulary() {
   }
 
   // REVIEW PAGE
-  if (review && wordDocuments?.length) {
+  if (review === 'review' && wordDocuments?.length) {
     return <Review cards={wordDocuments} srs={srs} />
   }
 

@@ -180,6 +180,10 @@ export default function Dashboard() {
         .sort({ name: 'asc' })
         .exec()
 
+      if (!progressDoc.length) {
+        return
+      }
+
       let chartData
       /**
        * Chart data daily

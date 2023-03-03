@@ -11,7 +11,7 @@ import {
 } from '@radix-ui/react-icons'
 import shuffle from 'lodash/shuffle'
 
-import type { WordDocType } from '../lib/types'
+import type { CardDocument } from '../lib/types'
 import { _updateDueDate, _formatDueDate } from '../lib/words'
 import Tooltip from '../components/Tooltip'
 import { useRxCollection } from 'rxdb-hooks'
@@ -40,12 +40,10 @@ export default function Review({
   cards,
   srs
 }: {
-  cards: WordDocType[]
+  cards: CardDocument[]
   srs: string
 }) {
   const [indexes, setIndexes] = useState(getInitialIndexes(cards.length))
-
-  const progressCollection = useRxCollection('progress')
 
   const [progress, setProgress] = useState(0)
   const [back, setBack] = useState(false)

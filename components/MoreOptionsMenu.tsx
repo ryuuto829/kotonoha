@@ -5,7 +5,7 @@ import {
   Pencil2Icon
 } from '@radix-ui/react-icons'
 
-import EditDialog from './EditDialog'
+import EditDialog from './CardEditor'
 
 export default function MoreOptionsMenu({ deleteWord, doc }) {
   return (
