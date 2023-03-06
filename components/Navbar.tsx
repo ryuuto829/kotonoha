@@ -94,7 +94,7 @@ export default function Navbar({
 
   return (
     <header>
-      <nav className="fixed top-0 left-0 px-4 z-20 w-full h-16 flex items-center space-x-4 bg-[rgb(25,25,25)] border-b border-white/20">
+      <nav className="fixed top-0 left-0 px-4 z-50 w-full h-16 flex items-center space-x-4 bg-[rgb(25,25,25)] border-b border-white/20">
         <button onClick={() => changeSidebarOpen(!sidebarOpen)}>
           <HamburgerMenuIcon className="w-5 h-5" />
         </button>

@@ -105,6 +105,9 @@ export const deckSchema = {
     },
     name: {
       type: 'string'
+    },
+    order: {
+      type: 'number'
     }
   },
   required: ['id', 'name']

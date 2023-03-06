@@ -9,8 +9,8 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <section className="grid grid-rows-[4rem_1fr] min-h-screen relative text-white/80">
       <Navbar sidebarOpen={sidebarOpen} changeSidebarOpen={setSideBarOpen} />
-      <div className="flex">
-        <Sidebar open={sidebarOpen} />
+      <Sidebar open={sidebarOpen} />
+      <div className={`transition-all ${sidebarOpen ? 'pl-[240px]' : 'pl-0'}`}>
         <main className="w-full h-full max-w-2xl mx-auto px-4 py-8 text-white text-opacity-80 shadow-md">
           {children}
         </main>
