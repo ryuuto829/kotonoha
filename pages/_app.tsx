@@ -8,6 +8,7 @@ import type { NextPageWithLayout } from '../lib/types'
 import '../styles/globals.css'
 import Layout from '../layouts/Layout'
 import { get } from '../lib/database'
+import { RxDBProvider } from '../lib/rxdb-hooks'
 
 export default function App({
   Component,
@@ -34,14 +35,16 @@ export default function App({
   }
 
   return (
-    <Provider db={db}>
-      <Layout>
-        {getLayout(
-          <QueryClientProvider client={queryClient}>
-            <Component {...pageProps} />
-          </QueryClientProvider>
-        )}
-      </Layout>
-    </Provider>
+    <RxDBProvider db={db}>
+      <Provider db={db}>
+        <Layout>
+          {getLayout(
+            <QueryClientProvider client={queryClient}>
+              <Component {...pageProps} />
+            </QueryClientProvider>
+          )}
+        </Layout>
+      </Provider>
+    </RxDBProvider>
   )
 }

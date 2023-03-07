@@ -110,7 +110,7 @@ export const deckSchema = {
       type: 'number'
     }
   },
-  required: ['id', 'name']
+  required: ['id', 'name', 'order']
 } as const
 
 export const progressSchema = {

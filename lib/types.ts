@@ -4,7 +4,8 @@ import {
   toTypedRxJsonSchema,
   ExtractDocumentTypeFromTypedRxJsonSchema,
   RxDocument,
-  RxCollection
+  RxCollection,
+  RxDatabase
 } from 'rxdb'
 import { cardSchema, progressSchema, deckSchema } from './schema'
 
@@ -85,16 +86,26 @@ const cardsSchemaTyped = toTypedRxJsonSchema(cardSchema)
 const progressSchemaTyped = toTypedRxJsonSchema(progressSchema)
 const deckSchemaTyped = toTypedRxJsonSchema(deckSchema)
 
-export type CardDocument = RxDocument<
-  ExtractDocumentTypeFromTypedRxJsonSchema<typeof cardsSchemaTyped>
+export type CardDocumentType = ExtractDocumentTypeFromTypedRxJsonSchema<
+  typeof cardsSchemaTyped
+>
+export type ProgressDocumentType = ExtractDocumentTypeFromTypedRxJsonSchema<
+  typeof progressSchemaTyped
+>
+export type DeckDocumentType = ExtractDocumentTypeFromTypedRxJsonSchema<
+  typeof deckSchemaTyped
 >
 
-export type ProgressDocument = RxDocument<
-  ExtractDocumentTypeFromTypedRxJsonSchema<typeof progressSchemaTyped>
->
-
-export type DeckDocument = RxDocument<
-  ExtractDocumentTypeFromTypedRxJsonSchema<typeof deckSchemaTyped>
->
+export type CardDocument = RxDocument<CardDocumentType>
+export type DeckDocument = RxDocument<DeckDocumentType>
+export type ProgressDocument = RxDocument<ProgressDocumentType>
 
 export type CardsCollection = RxCollection<CardDocument, {}, {}, {}>
+export type ProgressCollection = RxCollection<ProgressDocument, {}, {}, {}>
+export type DecksCollection = RxCollection<DeckDocumentType, {}, {}, {}>
+
+export type AppDatabase = RxDatabase<{
+  cards: CardsCollection
+  progress: ProgressCollection
+  decks: DecksCollection
+}>
