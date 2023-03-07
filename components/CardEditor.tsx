@@ -140,7 +140,7 @@ export default function CardEditor({
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger asChild>{children}</Dialog.Trigger>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 flex overflow-y-auto z-20 items-start justify-center scroll-p-10">
+          <Dialog.Overlay className="fixed inset-0 flex overflow-y-auto z-50 items-start justify-center scroll-p-10">
             <Dialog.Content className="w-full max-w-[550px] my-14 bg-[rgb(32,32,32)] p-6 rounded-xl shadow-md">
               {content}
             </Dialog.Content>

@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
+import { useState, ReactNode } from 'react'
 import Sidebar from '../components/Sidebar'
 import Navbar from '../components/Navbar'
 
@@ -7,13 +6,26 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSideBarOpen] = useState(true)
 
   return (
-    <section className="grid grid-rows-[4rem_1fr] min-h-screen relative text-white/80">
+    <section className="flex flex-col h-screen overflow-hidden">
       <Navbar sidebarOpen={sidebarOpen} changeSidebarOpen={setSideBarOpen} />
-      <Sidebar open={sidebarOpen} />
-      <div className={`transition-all ${sidebarOpen ? 'pl-[240px]' : 'pl-0'}`}>
-        <main className="w-full h-full max-w-2xl mx-auto px-4 py-8 text-white text-opacity-80 shadow-md">
-          {children}
-        </main>
+      <div className="flex-1 overflow-hidden">
+        <Sidebar open={sidebarOpen} />
+
+        {/* Overlay */}
+        <div
+          onClick={() => setSideBarOpen(false)}
+          className={`fixed right-0 bottom-0 w-screen h-[calc(100vh-64px)] bg-black/70 z-10 select-none ${
+            sidebarOpen ? 'md:hidden' : 'hidden'
+          }`}
+        ></div>
+
+        <div
+          className={`transition-all min-h-full h-full pl-0 overflow-y-auto ${
+            sidebarOpen ? 'md:pl-[var(--sidebar-width)]' : ''
+          }`}
+        >
+          <main className="w-full max-w-3xl mx-auto px-4 py-8">{children}</main>
+        </div>
       </div>
     </section>
   )

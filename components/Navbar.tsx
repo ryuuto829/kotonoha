@@ -93,32 +93,30 @@ export default function Navbar({
   }, [progressCollection])
 
   return (
-    <header>
-      <nav className="fixed top-0 left-0 px-4 z-50 w-full h-16 flex items-center space-x-4 bg-[rgb(25,25,25)] border-b border-white/20">
-        <button onClick={() => changeSidebarOpen(!sidebarOpen)}>
-          <HamburgerMenuIcon className="w-5 h-5" />
-        </button>
-        <Link href={'/dictionary'} className="p-2">
-          <HomeIcon className="w-5 h-5" />
-        </Link>
-        <div className="w-full flex items-center justify-end space-x-4">
+    <header className="px-4 w-full h-16 flex items-center space-x-4 bg-[rgb(25,25,25)] border-b border-white/20">
+      <button onClick={() => changeSidebarOpen(!sidebarOpen)}>
+        <HamburgerMenuIcon className="w-5 h-5" />
+      </button>
+      <Link href={'/dictionary'} className="p-2">
+        <HomeIcon className="w-5 h-5" />
+      </Link>
+      <div className="w-full flex items-center justify-end space-x-4">
+        <div className="flex items-center space-x-2">
+          <CardEditor modal={true}>
+            <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
+              <PlusIcon className="w-5 h-5" />
+              {/* <span>Add</span> */}
+            </button>
+          </CardEditor>
+
           <div className="flex items-center space-x-2">
-            <CardEditor modal={true}>
-              <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
-                <PlusIcon className="w-5 h-5" />
-                {/* <span>Add</span> */}
-              </button>
-            </CardEditor>
-
-            <div className="flex items-center space-x-2">
-              <PointIcon className="w-5 h-5 fill-white/80" />
-              <span>{points.toFixed(2)}</span>
-            </div>
-
-            <Menu />
+            <PointIcon className="w-5 h-5 fill-white/80" />
+            <span>{points.toFixed(2)}</span>
           </div>
+
+          <Menu />
         </div>
-      </nav>
+      </div>
     </header>
   )
 }

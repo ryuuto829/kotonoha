@@ -85,9 +85,9 @@ export default function Vocabulary() {
 
       querySub = (query.$.subscribe as any)(
         (results: WordDocType[] | undefined) => {
-          // console.log(results)
+          console.log(results)
 
-          if (results) {
+          if (results && !review) {
             // 1. Update all documents count
             collection.count().exec().then(setWordDocumentsCount)
 

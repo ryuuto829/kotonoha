@@ -10,13 +10,11 @@
 }
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-}
+  --app-background-color: rgb(25, 25, 25);
+  --app-menu-color: rgb(32, 32, 32);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-  }
+  --sidebar-width: 240px;
+  --navbar-heigth: 64px;
 }
 
 * {
@@ -32,7 +30,7 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: rgb(255, 255, 255, 0.8);
   background: rgb(25, 25, 25);
 }
 

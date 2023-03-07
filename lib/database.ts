@@ -11,7 +11,7 @@ import { RxDBJsonDumpPlugin } from 'rxdb/plugins/json-dump'
 
 import { cardSchema, profileSchema, progressSchema, deckSchema } from './schema'
 
-// removeRxDatabase('kotonoha-db', getRxStorageDexie())
+removeRxDatabase('kotonoha-db', getRxStorageDexie())
 
 /**
  * Enable mango-query-syntax with chained methods
