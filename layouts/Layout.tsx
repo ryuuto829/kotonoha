@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar'
 import Navbar from '../components/Navbar'
 
 export default function Layout({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSideBarOpen] = useState(true)
+  const [sidebarOpen, setSideBarOpen] = useState(false)
 
   return (
     <section className="flex flex-col h-screen overflow-hidden">

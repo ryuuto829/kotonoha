@@ -1,5 +1,6 @@
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import { ReactElement } from 'react'
+import { TooltipContentProps } from '@radix-ui/react-tooltip'
 
 export default function Tooltip({
   children,
@@ -7,10 +8,10 @@ export default function Tooltip({
   keyBinding,
   ...props
 }: {
-  children: ReactElement
-  content: string | ReactElement
+  children?: ReactElement
+  content?: string | ReactElement
   keyBinding?: string | ReactElement
-}) {
+} & TooltipContentProps) {
   return (
     <TooltipPrimitive.Provider delayDuration={350}>
       <TooltipPrimitive.Root>
@@ -19,7 +20,7 @@ export default function Tooltip({
           side="top"
           align="center"
           sideOffset={10}
-          className="flex items-center rounded-md bg-white/10 h-7 text-sm px-2"
+          className="flex items-center rounded-md bg-[rgb(50,50,50)] h-7 text-[13px] font-bold px-2"
           {...props}
         >
           {content}

@@ -15,22 +15,26 @@ import {
 } from '@radix-ui/react-icons'
 import { useRxQuery, useRxDB } from '../lib/rxdb-hooks'
 import { CardDocument, AppDatabase, DeckDocument } from '../lib/types'
+import Tooltip from './Tooltip'
 
 const NAV_LINKS = [
   {
     label: 'Dictionary',
     url: '/dictionary',
-    icon: <MagnifyingGlassIcon />
+    icon: <MagnifyingGlassIcon />,
+    description: 'Search word in dictionary'
   },
   {
     label: 'Vocabulary',
     url: '/vocabulary/all',
-    icon: <ArchiveIcon />
+    icon: <ArchiveIcon />,
+    description: 'All cards'
   },
   {
     label: 'Due for Review',
     url: '/vocabulary/srs',
     icon: <ClockIcon />,
+    description: 'Cards due for review',
     hasCount: true
   }
 ]
@@ -81,7 +85,7 @@ export default function Sidebar({ open }: { open: boolean }) {
 
   return (
     <div
-      className={`fixed left-0 z-20 w-[var(--sidebar-width)] h-[calc(100vh-var(--navbar-heigth))] pt-7 bg-[var(--app-background-color)] transition shadow-[rgb(255,255,255,0.09)_-1px_0px_0px_0px_inset] overflow-hidden select-none ${
+      className={`fixed left-0 z-20 w-[var(--sidebar-width)] h-[calc(100vh-var(--navbar-heigth))] pt-7 bg-[var(--app-background-color)] transition shadow-[rgb(255,255,255,0.09)_-1px_0px_0px_0px_inset] select-none ${
         open ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
@@ -92,29 +96,30 @@ export default function Sidebar({ open }: { open: boolean }) {
       >
         {/* Main links */}
         <div aria-label="Main links" className="px-2">
-          {NAV_LINKS.map(({ label, url, icon, hasCount }) => (
-            <Link
-              key={url}
-              href={url}
-              className={`p-1.5 h-9 w-full flex items-center space-x-2 rounded-[5px] hover:bg-white/10 transition-colors ${
-                router.asPath === url ? 'bg-white/10' : ''
-              }`}
-            >
-              <span className="w-5 h-5 flex items-center justify-center">
-                {icon}
-              </span>
-              <span className="text-sm leading-4 flex-1">{label}</span>
-
-              {hasCount && (
-                <span
-                  className={`text-sm text-white/50 font-bold h-5 w-5 text-center ${
-                    cards.length === 0 ? 'invisible' : ''
-                  }`}
-                >
-                  {cards.length}
+          {NAV_LINKS.map(({ label, url, icon, description, hasCount }) => (
+            <Tooltip key={url} content={description} side="right">
+              <Link
+                href={url}
+                className={`p-1.5 h-9 w-full flex items-center space-x-2 rounded-[5px] hover:bg-white/10 transition-colors ${
+                  router.asPath === url ? 'bg-white/10' : ''
+                }`}
+              >
+                <span className="w-5 h-5 flex items-center justify-center">
+                  {icon}
                 </span>
-              )}
-            </Link>
+                <span className="text-sm leading-4 flex-1">{label}</span>
+
+                {hasCount && (
+                  <span
+                    className={`text-sm text-white/50 font-bold h-5 w-5 text-center ${
+                      cards.length === 0 ? 'invisible' : ''
+                    }`}
+                  >
+                    {cards.length}
+                  </span>
+                )}
+              </Link>
+            </Tooltip>
           ))}
         </div>
 
