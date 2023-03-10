@@ -22,6 +22,7 @@ function EditorContent({
   textContent?: string
 }) {
   const cardsCollection = useRxCollection('cards')
+  const decksCollection = useRxCollection('decks')
 
   const inputRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState(card?.status || 1)
@@ -69,6 +70,14 @@ function EditorContent({
       previousStatus: null,
       statusChangedDate: today,
       deckId: deckId || null
+    })
+
+    const doc = await decksCollection?.findOne(deckId).exec()
+
+    await doc?.update({
+      $inc: {
+        terms: 1
+      }
     })
   }
 

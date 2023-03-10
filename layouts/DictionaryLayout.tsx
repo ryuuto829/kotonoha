@@ -61,7 +61,7 @@ export default function DictionaryLayout({
 
   return (
     <>
-      <header className="flex flex-col gap-5 pt-9">
+      <header className="flex flex-col gap-5">
         {/* Search form */}
         <form onSubmit={submitSearchForm} className="relative">
           <MagnifyingGlassIcon

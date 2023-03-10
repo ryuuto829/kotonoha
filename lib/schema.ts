@@ -106,11 +106,19 @@ export const deckSchema = {
     name: {
       type: 'string'
     },
-    order: {
+    terms: {
       type: 'number'
+    },
+    createdAt: {
+      type: 'string',
+      format: 'date-time'
+    },
+    lastStudiedAt: {
+      type: 'string',
+      format: 'date-time'
     }
   },
-  required: ['id', 'name', 'order']
+  required: ['id', 'name', 'terms', 'createdAt', 'lastStudiedAt']
 } as const
 
 export const progressSchema = {

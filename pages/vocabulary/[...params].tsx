@@ -4,19 +4,58 @@ import { useRouter } from 'next/router'
 import { useRxCollection } from 'rxdb-hooks'
 import {
   // PlusIcon,
-  ArchiveIcon,
-  MagnifyingGlassIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon
+  // ArchiveIcon,
+  // MagnifyingGlassIcon,
+  // ChevronLeftIcon,
+  // ChevronRightIcon,
+  // ChevronDownIcon,
+  DotsHorizontalIcon,
+  LayersIcon,
+  DashboardIcon
 } from '@radix-ui/react-icons'
 
 import { CardDocument, DeckDocument } from '../../lib/types'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
 // import CardEditor from '../../components/CardEditor'
-import { REVIEW_STATUS } from '../../components/StatusMenu'
+// import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
 import FilterMenu from '../../components/FilterMenu'
-import DeckMenu from '../../components/DeckMenu'
+// import DeckMenu from '../../components/DeckMenu'
+// import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+
+// function StudyMenu() {
+//   return (
+//     <DropdownMenu.Root modal={false}>
+//       <DropdownMenu.Trigger
+//         aria-label="More options"
+//         className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#9da2ff]"
+//       >
+//         <span>Study</span>
+//         <ChevronDownIcon className="w-4 h-4" />
+//       </DropdownMenu.Trigger>
+//       <DropdownMenu.Portal>
+//         <DropdownMenu.Content
+//           align="end"
+//           sideOffset={5}
+//           className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
+//         >
+//           <Link
+//             href="/vocabulary?study=flashcards"
+//             className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+//           >
+//             Flashcards
+//           </Link>
+//           <Link
+//             href="/vocabulary?study=match"
+//             className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+//           >
+//             Match
+//           </Link>
+//         </DropdownMenu.Content>
+//       </DropdownMenu.Portal>
+//     </DropdownMenu.Root>
+//   )
+// }
 
 export default function Vocabulary() {
   const router = useRouter()
@@ -121,25 +160,25 @@ export default function Vocabulary() {
     return () => querySub?.unsubscribe()
   }, [decksCollection, srs])
 
-  const deleteWord = async (id: string) => {
-    await collection?.findOne(id).remove()
-  }
+  // const deleteWord = async (id: string) => {
+  //   await collection?.findOne(id).remove()
+  // }
 
-  const goToNextPage = () => {
-    const count = wordDocumentsOffset + Number(cards)
+  // const goToNextPage = () => {
+  //   const count = wordDocumentsOffset + Number(cards)
 
-    if (count <= wordDocumentsCount) {
-      setWordDocumentsOffset(count)
-    }
-  }
+  //   if (count <= wordDocumentsCount) {
+  //     setWordDocumentsOffset(count)
+  //   }
+  // }
 
-  const goToPreviousPage = () => {
-    const count = wordDocumentsOffset - Number(cards)
+  // const goToPreviousPage = () => {
+  //   const count = wordDocumentsOffset - Number(cards)
 
-    if (count >= 0) {
-      setWordDocumentsOffset(count)
-    }
-  }
+  //   if (count >= 0) {
+  //     setWordDocumentsOffset(count)
+  //   }
+  // }
 
   // REVIEW PAGE
   if (review === 'review' && wordDocuments?.length) {
@@ -152,53 +191,61 @@ export default function Vocabulary() {
       <section className="flex flex-col space-y-2">
         {/* Toggle & review */}
         <div className="flex space-x-4 items-center justify-between">
-          <h1 className="text-xl font-bold">{deckName || 'All'}</h1>
-          {/* <div className="flex space-x-2 items-center justify-between">
+          <h1 className="text-3xl font-bold">{deckName || 'All'}</h1>
+          <div className="flex items-center space-x-2">
             {[
               {
-                url: '/vocabulary/all/',
-                active: srs === 'all',
-                label: 'All'
+                name: 'Flashcards',
+                url: '/vocabulary?study=flashcards',
+                Icon: LayersIcon
               },
               {
-                url: '/vocabulary/srs/',
-                active: srs === 'srs',
-                label: 'Due for Review'
+                name: 'Match',
+                url: '/vocabulary?study=match',
+                Icon: DashboardIcon
               }
-            ].map(({ url, active, label }) => (
+            ].map(({ name, url, Icon }) => (
               <Link
-                key={url}
+                key={name}
                 href={url}
-                className={`inline-flex items-center rounded-lg h-8 bg-white/5 px-4 ${
-                  active ? 'bg-white/60 text-black/80' : ''
-                }`}
+                className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136]"
               >
-                {label}
+                <Icon className="w-4 h-4" />
+                <span>{name}</span>
               </Link>
             ))}
-          </div> */}
-
-          <div className="flex items-center space-x-2">
-            {/* <CardEditor modal={true}>
-              <button className="inline-flex items-center space-x-2 bg-white/5 rounded h-8 px-2">
-                <PlusIcon className="w-5 h-5" />
-                <span>Add</span>
-              </button>
-            </CardEditor> */}
             <Link
-              href={`${srs}/review`}
-              className="flex items-center text-white bg-[rgb(35,131,226)] px-3 rounded-[3px] h-8 space-x-2"
+              href="#"
+              className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors"
             >
-              <ArchiveIcon className="w-4 h-4" />
-              <span>Review</span>
+              <DotsHorizontalIcon className="w-5 h-5" />
             </Link>
           </div>
         </div>
+        <p>Description</p>
 
         {/* Search & view */}
-        <div className="border-b border-white/20 flex items-center justify-between py-4 space-x-4">
+        <div className="flex items-center justify-between space-x-4">
+          <h2 className="text-xl font-bold">
+            {'Terms in this set (' + (wordDocuments?.length || 0) + ')'}
+          </h2>
+
+          <FilterMenu
+            cards={cards}
+            sort={sort}
+            status={status}
+            ascending={ascending}
+            changeCards={(value) => {
+              setCards(value)
+              setWordDocumentsOffset(0)
+            }}
+            changeSort={setSort}
+            changeStatus={setStatus}
+            changeAscending={setAscending}
+          />
+
           {/* Search */}
-          <div className="relative w-full">
+          {/* <div className="relative w-full">
             <input
               type="sumbit"
               value={search}
@@ -209,11 +256,11 @@ export default function Vocabulary() {
             <div className="absolute top-0 left-0 h-[30px] w-[30px] flex items-center justify-center">
               <MagnifyingGlassIcon className="w-5 h-5" />
             </div>
-          </div>
+          </div> */}
 
-          <div className="flex items-center space-x-2 justify-end">
-            {/* Pagination */}
-            <div className="flex items-center border border-white/40 rounded h-7 divide-x-2 divide-white/20">
+          {/* <div className="flex items-center space-x-2 justify-end"> */}
+          {/* Pagination */}
+          {/* <div className="flex items-center border border-white/40 rounded h-7 divide-x-2 divide-white/20">
               <button
                 onClick={goToPreviousPage}
                 className="h-7 px-1.5 disabled:text-white/20"
@@ -230,70 +277,34 @@ export default function Vocabulary() {
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
-            </div>
-            {/* View */}
-            <FilterMenu
-              cards={cards}
-              sort={sort}
-              status={status}
-              ascending={ascending}
-              changeCards={(value) => {
-                setCards(value)
-                setWordDocumentsOffset(0)
-              }}
-              changeSort={setSort}
-              changeStatus={setStatus}
-              changeAscending={setAscending}
-            />
+            </div> */}
+          {/* View */}
 
-            <DeckMenu deck={deck} />
-          </div>
+          {/* <DeckMenu deck={deck} /> */}
+          {/* </div> */}
         </div>
-      </section>
+        {wordDocuments?.length === 0 && <div>No data</div>}
 
-      {wordDocuments?.length === 0 && <div>No data</div>}
-
-      {/* Vocab list */}
-      {wordDocuments?.length !== 0 && (
-        <>
-          <div className="flex flex-col rounded-lg divide-y-[1px] divide-white/20 ">
-            <div className="grid items-center grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 h-8">
-              <div>{`Word (${wordDocuments?.length || 0})`}</div>
-              <div>Meaning</div>
-              <div>Status</div>
-            </div>
-
-            {wordDocuments &&
-              wordDocuments.map((doc) => (
-                <div
-                  key={doc.id}
-                  className="grid grid-cols-[1fr_1fr_100px_50px] gap-2 px-2 py-4 items-center whitespace-pre-wrap"
-                >
-                  <div className="text-lg">{doc.word}</div>
-                  <div className="text-sm">{doc.meaning}</div>
-                  <div>
-                    {REVIEW_STATUS.filter(
-                      (el) => el.status === doc.status?.toString()
-                    ).map((el) => (
-                      <div
-                        key={el.label}
-                        className={`inline-flex items-center space-x-1 h-5 rounded-full px-2 text-xs ${el.bg}`}
-                      >
-                        <div
-                          className={`mr-1.5 rounded-full h-2 w-2 ${el.color}`}
-                        ></div>
-                        <span>{el.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <MoreOptionsMenu deleteWord={deleteWord} doc={doc} />
-                  </div>
+        {/* Terms */}
+        {wordDocuments && wordDocuments?.length !== 0 && (
+          <div className="flex flex-col gap-3">
+            {wordDocuments.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center rounded-md h-14 bg-[#303136] p-4 whitespace-pre-wrap"
+              >
+                <div className="flex-1 grid grid-cols-[1fr_2fr] divide-x divide-white/40">
+                  <div className="pr-8">{doc.word || ' '}</div>
+                  <div className="px-8">{doc.meaning || ' '}</div>
                 </div>
-              ))}
+                <div>
+                  <MoreOptionsMenu doc={doc} />
+                </div>
+              </div>
+            ))}
           </div>
-        </>
-      )}
+        )}
+      </section>
     </>
   )
 }

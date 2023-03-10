@@ -16,7 +16,8 @@ import CardEditor from '../components/CardEditor'
 
 const APP_NAVIGATION_LINKS = [
   { name: 'Dictionary', url: '/dictionary' },
-  { name: 'Your library', url: '/vocabulary/all' }
+  { name: 'Your library', url: '/sets' },
+  { name: 'Vocab?', url: '/vocabulary/all' }
 ]
 
 const PROFILE_NAVIGATION_LINKS = [
@@ -157,9 +158,11 @@ export default function Layout({ children }: { children: ReactNode }) {
       <main
         aria-label="Main content"
         tabIndex={-1}
-        className="relative w-full min-h-screen flex flex-col flex-grow pt-[64px] px-4 max-w-3xl mx-auto"
+        className="relative min-h-screen flex flex-col flex-grow justify-center items-center pt-[64px] "
       >
-        <div className="flex flex-col flex-grow gap-8 pb-20">{children}</div>
+        <div className="flex flex-col flex-grow gap-8 pb-20 pt-10 px-4 max-w-3xl w-full">
+          {children}
+        </div>
       </main>
     </section>
   )
