@@ -106,6 +106,9 @@ export const deckSchema = {
     name: {
       type: 'string'
     },
+    description: {
+      type: 'string'
+    },
     terms: {
       type: 'number'
     },
