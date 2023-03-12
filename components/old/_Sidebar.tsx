@@ -13,9 +13,9 @@ import {
   PlusIcon,
   StackIcon
 } from '@radix-ui/react-icons'
-import { useRxQuery, useRxDB } from '../lib/rxdb-hooks'
-import { CardDocument, AppDatabase, DeckDocument } from '../lib/types'
-import Tooltip from './Tooltip'
+import { useRxQuery, useRxDB } from '../../lib/rxdb-hooks'
+import { CardDocument, AppDatabase, DeckDocument } from '../../lib/types'
+import Tooltip from '../Tooltip'
 
 const NAV_LINKS = [
   {
@@ -57,7 +57,7 @@ export default function Sidebar({ open }: { open: boolean }) {
     [db.cards]
   )
 
-  const { data: decks } = useRxQuery<DeckDocument>(decksQuery)
+  const { data: decks } = useRxQuery<DeckDocument[]>(decksQuery)
   const { data: cards } = useRxQuery<CardDocument>(cardsQuery)
   const [order, setOrder] = useState<string[] | undefined>()
 

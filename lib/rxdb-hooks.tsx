@@ -1,7 +1,4 @@
-/**
- * React hooks for integrating with RxDB
- * @link https://github.com/cvara/rxdb-hooks
- */
+import { cloneDeep } from 'lodash'
 import {
   useMemo,
   useEffect,
@@ -12,6 +9,10 @@ import {
 } from 'react'
 import { RxDatabase, RxQuery, RxDocument } from 'rxdb'
 
+/**
+ * React hooks for integrating with RxDB
+ * @link https://github.com/cvara/rxdb-hooks
+ */
 export const RxContext = createContext<{ db?: RxDatabase }>({})
 
 /**
@@ -41,12 +42,22 @@ export function useRxDB<T>() {
  * Subscribes to given `RxQuery` object providing query results
  */
 export function useRxQuery<T>(query: RxQuery | undefined) {
-  const [data, setData] = useState<RxDocument<T>[] | []>([])
+  const [data, setData] = useState<RxDocument<T>>()
   const [isFetching, setIsFetching] = useState(true)
 
   useEffect(() => {
-    const sub = (query?.$.subscribe as any)((docs: RxDocument<T>[]) => {
-      setData(docs)
+    const sub = (query?.$.subscribe as any)((docs: RxDocument<T>) => {
+      if (!docs) return
+
+      /**
+       * The `update$` event observation results in the `data === docs` condition
+       * being `true`, which does not have any impact on the state or update the UI.
+       * However, to ensure the state is updated correctly, it is essential
+       * to provide a deep copy of the object.
+       *
+       * @todo Create a deep copy of `docs` only when the size of the array changes
+       */
+      setData(cloneDeep(docs))
       setIsFetching(false)
     })
 

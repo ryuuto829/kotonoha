@@ -4,11 +4,21 @@ import {
   TrashIcon,
   Pencil2Icon
 } from '@radix-ui/react-icons'
-import { CardDocument } from '../lib/types'
+import { useRxDB } from '../../lib/rxdb-hooks'
+import { AppDatabase, CardDocument } from '../../lib/types'
 
 export default function MoreOptionsMenu({ doc, edit }: { doc: CardDocument }) {
+  const db = useRxDB<AppDatabase>()
+
   const deleteTerm = async () => {
     await doc?.remove()
+
+    const setDocument = await db.decks.findOne(doc.deckId).exec()
+    await setDocument?.update({
+      $inc: {
+        terms: -1
+      }
+    })
   }
 
   return (

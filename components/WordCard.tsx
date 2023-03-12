@@ -13,12 +13,12 @@ function Add({ content }) {
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen}>
       {!open && (
-        <Collapsible.Trigger className="inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
+        <Collapsible.Trigger className="inline-flex px-3 h-8 gap-2 items-center justify-center rounded hover:bg-white/5 transition-colors">
           <PlusIcon className="w-4 h-4" />
           <span>Add</span>
         </Collapsible.Trigger>
       )}
-      <Collapsible.Content asChild>
+      <Collapsible.Content>
         <Editor close={() => setOpen(false)} content={content} />
       </Collapsible.Content>
     </Collapsible.Root>
@@ -133,12 +133,6 @@ export default function WordCard({ word }: { word: WordResult }) {
       )}
 
       {/* Add word */}
-      {/* <EditDialog textContent={textContent}> */}
-      {/* <button className="data-[state=open]:hidden inline-flex items-center space-x-2">
-        <PlusIcon className="w-5 h-5" />
-        <span>Add</span>
-      </button> */}
-      {/* </EditDialog> */}
       <Add content={textContent} />
 
       {/* Divide */}

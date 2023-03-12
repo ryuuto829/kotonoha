@@ -11,8 +11,8 @@ import {
   PlusIcon
 } from '@radix-ui/react-icons'
 import PointIcon from './_PointIcon'
-import { ProgressDocument } from '../lib/types'
-import CardEditor from './CardEditor'
+import { ProgressDocument } from '../../lib/types'
+import CardEditor from '../CardEditor'
 
 function Menu() {
   return (

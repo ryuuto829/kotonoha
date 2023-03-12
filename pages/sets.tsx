@@ -1,9 +1,7 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { nanoid } from 'nanoid'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as Dialog from '@radix-ui/react-dialog'
-import { ChevronDownIcon, Cross1Icon, PlusIcon } from '@radix-ui/react-icons'
+import { ChevronDownIcon, PlusIcon } from '@radix-ui/react-icons'
 import { useRxQuery, useRxDB } from '../lib/rxdb-hooks'
 import { AppDatabase, DeckDocument } from '../lib/types'
 import {
@@ -14,7 +12,6 @@ import {
   parseISO
 } from 'date-fns'
 import { groupBy } from 'lodash'
-import * as Form from '@radix-ui/react-form'
 
 const SORT_OPTIONS = [
   { name: 'Recent', value: 'lastStudiedAt', order: 'desc' },
@@ -22,81 +19,7 @@ const SORT_OPTIONS = [
   { name: 'Alphabetical', value: 'name', order: 'asc' }
 ]
 
-function AddSetModal() {
-  const db = useRxDB<AppDatabase>()
-  const [open, setOpen] = useState(false)
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    const today = new Date().toISOString()
-    const { name = 'New Deck', description } = Object.fromEntries(
-      new FormData(event.currentTarget)
-    ) as { [x: string]: string | undefined }
-
-    await db.decks?.insert({
-      id: nanoid(8),
-      name,
-      description,
-      terms: 0,
-      createdAt: today,
-      lastStudiedAt: today
-    })
-
-    setOpen(false)
-  }
-
-  return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136]">
-        <PlusIcon className="w-4 h-4" />
-        <span>Add set</span>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 overflow-y-auto z-50 flex items-start justify-center">
-          <Dialog.Content className="flex flex-col gap-5 w-full max-w-[550px] my-14 bg-[#303136] p-6 rounded-xl shadow-md border border-white/20">
-            {/* Header */}
-            <header className="flex items-center justify-between">
-              <Dialog.Title className="text-2xl font-bold">
-                Create a new study set
-              </Dialog.Title>
-              <Dialog.Trigger>
-                <Cross1Icon className="w-5 h-5" />
-              </Dialog.Trigger>
-            </header>
-            {/* Form */}
-            <Form.Root onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <Form.Field name="name">
-                <Form.Label className="sr-only">Set title</Form.Label>
-                <Form.Control asChild>
-                  <input
-                    className="w-full bg-[#202124] inline-flex h-[35px] appearance-none items-center justify-center rounded px-4 text-[15px] leading-none shadow-[0_0_0_1px_transparent] outline-none hover:shadow-[0_0_0_1px_#9da2ff] focus:shadow-[0_0_0_2px_#9da2ff] transition-colors placeholder:text-white/50"
-                    type="text"
-                    placeholder="Enter set name"
-                    required
-                  />
-                </Form.Control>
-              </Form.Field>
-              <Form.Field name="description">
-                <Form.Label className="sr-only">Set description</Form.Label>
-                <Form.Control asChild>
-                  <input
-                    className="w-full bg-[#202124] inline-flex h-[35px] appearance-none items-center justify-center rounded px-4 text-[15px] leading-none shadow-[0_0_0_1px_transparent] outline-none hover:shadow-[0_0_0_1px_#9da2ff] focus:shadow-[0_0_0_2px_#9da2ff] transition-colors placeholder:text-white/50"
-                    type="text"
-                    placeholder="Enter a description (optional)"
-                  />
-                </Form.Control>
-              </Form.Field>
-              <Form.Submit className="self-end inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-white/10">
-                Submit
-              </Form.Submit>
-            </Form.Root>
-          </Dialog.Content>
-        </Dialog.Overlay>
-      </Dialog.Portal>
-    </Dialog.Root>
-  )
-}
+import SetModal from '../components/SetModal'
 
 export function SortMenu({
   sort,
@@ -154,7 +77,7 @@ export default function Sets() {
       }),
     [db.decks, sort]
   )
-  const { data: decks } = useRxQuery<DeckDocument>(decksQuery)
+  const { data: decks } = useRxQuery<DeckDocument[]>(decksQuery)
 
   const group = groupBy(decks, ({ createdAt }) => {
     const created = parseISO(createdAt)
@@ -177,7 +100,12 @@ export default function Sets() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Study sets</h1>
-        <AddSetModal />
+        <SetModal>
+          <button className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136]">
+            <PlusIcon className="w-4 h-4" />
+            <span>Add set</span>
+          </button>
+        </SetModal>
       </div>
       <div>
         <SortMenu sort={sort} changeSort={setSort} />
