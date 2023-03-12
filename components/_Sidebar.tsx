@@ -66,10 +66,14 @@ export default function Sidebar({ open }: { open: boolean }) {
   }, [decks])
 
   const addNewDeck = async () => {
+    const today = new Date().toISOString()
     await db.decks?.insert({
       id: nanoid(8),
       name: 'New Deck',
-      order: order?.length || 0
+      order: order?.length || 0,
+      terms: 0,
+      createdAt: today,
+      lastReviewed: ''
     })
   }
 

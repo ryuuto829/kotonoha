@@ -10,7 +10,7 @@ import {
   HomeIcon,
   PlusIcon
 } from '@radix-ui/react-icons'
-import PointIcon from './PointIcon'
+import PointIcon from './_PointIcon'
 import { ProgressDocument } from '../lib/types'
 import CardEditor from './CardEditor'
 

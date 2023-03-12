@@ -1,15 +1,36 @@
 import Link from 'next/link'
 import { PlusIcon } from '@radix-ui/react-icons'
-import { _formatCardContent, _calculateDueDate } from '../lib/words'
+// import { _formatCardContent, _calculateDueDate } from '../lib/words'
 import type { WordResult } from '../lib/types'
-import EditDialog from './CardEditor'
+import { useState } from 'react'
+import * as Collapsible from '@radix-ui/react-collapsible'
+import Editor from './Editor'
+// import EditDialog from './CardEditor'
+
+function Add({ content }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Collapsible.Root open={open} onOpenChange={setOpen}>
+      {!open && (
+        <Collapsible.Trigger className="inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
+          <PlusIcon className="w-4 h-4" />
+          <span>Add</span>
+        </Collapsible.Trigger>
+      )}
+      <Collapsible.Content asChild>
+        <Editor close={() => setOpen(false)} content={content} />
+      </Collapsible.Content>
+    </Collapsible.Root>
+  )
+}
 
 export default function WordCard({ word }: { word: WordResult }) {
   const [mainReading, ...otherReadings] = word.japanese
   const tags = [word.is_common && 'common', ...word.jlpt].filter((el) => el)
 
   const textContent = `${mainReading.word || mainReading.reading}\n---\n${
-    mainReading.reading
+    mainReading.reading || ''
   } `
 
   return (
@@ -112,12 +133,13 @@ export default function WordCard({ word }: { word: WordResult }) {
       )}
 
       {/* Add word */}
-      <EditDialog textContent={textContent}>
-        <button className="data-[state=open]:hidden inline-flex items-center space-x-2">
-          <PlusIcon className="w-5 h-5" />
-          <span>Add</span>
-        </button>
-      </EditDialog>
+      {/* <EditDialog textContent={textContent}> */}
+      {/* <button className="data-[state=open]:hidden inline-flex items-center space-x-2">
+        <PlusIcon className="w-5 h-5" />
+        <span>Add</span>
+      </button> */}
+      {/* </EditDialog> */}
+      <Add content={textContent} />
 
       {/* Divide */}
       <div className="w-full h-[1px] bg-white/20"></div>

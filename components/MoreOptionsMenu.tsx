@@ -5,9 +5,8 @@ import {
   Pencil2Icon
 } from '@radix-ui/react-icons'
 import { CardDocument } from '../lib/types'
-import CardEditor from './CardEditor'
 
-export default function MoreOptionsMenu({ doc }: { doc: CardDocument }) {
+export default function MoreOptionsMenu({ doc, edit }: { doc: CardDocument }) {
   const deleteTerm = async () => {
     await doc?.remove()
   }
@@ -27,16 +26,13 @@ export default function MoreOptionsMenu({ doc }: { doc: CardDocument }) {
           className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
         >
           {/* Edit */}
-          <CardEditor
-            modal={true}
-            doc={doc}
-            textContent={doc.word + '\n---\n' + doc.meaning}
+          <button
+            className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+            onClick={edit}
           >
-            <button className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none">
-              <Pencil2Icon className="w-4 h-4" />
-              <span>Edit</span>
-            </button>
-          </CardEditor>
+            <Pencil2Icon className="w-4 h-4" />
+            <span>Edit</span>
+          </button>
           {/* Delete */}
           <button
             className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"

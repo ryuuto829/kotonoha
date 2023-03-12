@@ -13,7 +13,7 @@ import { CardDocument } from '../lib/types'
 import SelectDeckMenu from './SelectDeckMenu'
 import * as RadioGroup from '@radix-ui/react-radio-group'
 
-function EditorContent({
+export function EditorContent({
   close,
   card,
   textContent
@@ -34,7 +34,12 @@ function EditorContent({
   const [lineDivider, setLineDivider] = useState('\n\n')
 
   const placeholder = [...Array.from(Array(3))]
-    .map((_, index) => `Word ${index + 1}${termDivider}Definition ${index + 1}`)
+    .map(
+      (_, index) =>
+        `Word ${index + 1}${termDivider.replace(/\\n/g, '\n')}Definition ${
+          index + 1
+        }`
+    )
     .join(lineDivider)
 
   const saveWord = async () => {
@@ -91,18 +96,20 @@ function EditorContent({
   }
 
   return (
-    <>
-      <h1 className="text-2xl font-bold">Import new cards</h1>
-      <div
-        ref={inputRef}
-        contentEditable="true"
-        suppressContentEditableWarning
-        placeholder={placeholder}
-        className="relative font-mono w-full min-h-[140px] overflow-hidden resize-y rounded px-2.5 py-1 whitespace-pre-wrap bg-[#202124] empty:before:content-[attr(placeholder)] before:absolute before:whitespace-pre-wrap"
-      >
-        {textContent || ''}
+    <div className="flex">
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold">Import new cards</h1>
+        <div
+          ref={inputRef}
+          contentEditable="true"
+          suppressContentEditableWarning
+          placeholder={placeholder}
+          className="relative font-mono w-full min-h-[140px] overflow-hidden resize-y rounded px-2.5 py-1 whitespace-pre-wrap bg-[#202124] empty:before:content-[attr(placeholder)] before:absolute before:whitespace-pre-wrap"
+        >
+          {textContent || ''}
+        </div>
       </div>
-      <div className="flex items-center justify-between gap-3 p-2">
+      <div className="flex flex-col gap-3 p-2">
         {/* <StatusMenu statusOption={status} changeStatus={setStatus} /> */}
         <SelectDeckMenu option={deckId} changeOption={setDeckId} />
 
@@ -112,12 +119,12 @@ function EditorContent({
           className="flex flex-col items-start"
         >
           <div>Between term and definition</div>
-          <RadioGroup.Item value={`\t`}>
+          <RadioGroup.Item value={`\t`} className="flex">
+            <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:block after:w-[11px] after:h-[11px] after:rounded-[50%] after:bg-blue-400"></RadioGroup.Indicator>
             Tab
-            <RadioGroup.Indicator>+</RadioGroup.Indicator>
           </RadioGroup.Item>
-          <RadioGroup.Item value=",">
-            Comma
+          <RadioGroup.Item value="\n---\n">
+            Divider
             <RadioGroup.Indicator>+</RadioGroup.Indicator>
           </RadioGroup.Item>
           <RadioGroup.Item value="">
@@ -128,11 +135,7 @@ function EditorContent({
               placeholder="\n---\n"
               className="whitespace-pre-wrap font-mono"
               onChange={(e) => {
-                /**
-                 * Insert a line break into a Text component
-                 * NOTE: USE WITH FONT-MONO on japanese keyboard
-                 */
-                setTermDivider(e.currentTarget.value.replace(/\\n/g, '\n'))
+                setTermDivider(e.currentTarget.value)
               }}
             />
             <RadioGroup.Indicator>+</RadioGroup.Indicator>
@@ -145,8 +148,8 @@ function EditorContent({
           className="flex flex-col items-start"
         >
           <div>Between cards</div>
-          <RadioGroup.Item value={`\n`}>
-            New line
+          <RadioGroup.Item value={`\n\n`}>
+            Empty line
             <RadioGroup.Indicator>+</RadioGroup.Indicator>
           </RadioGroup.Item>
           <RadioGroup.Item value=";">
@@ -161,11 +164,7 @@ function EditorContent({
               placeholder="\n---\n"
               className="whitespace-pre-wrap font-mono"
               onChange={(e) => {
-                /**
-                 * Insert a line break into a Text component
-                 * NOTE: USE WITH FONT-MONO on japanese keyboard
-                 */
-                setLineDivider(e.currentTarget.value.replace(/\\n/g, '\n'))
+                setLineDivider(e.currentTarget.value)
               }}
             />
             <RadioGroup.Indicator>+</RadioGroup.Indicator>
@@ -191,7 +190,7 @@ function EditorContent({
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

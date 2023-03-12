@@ -3,59 +3,46 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useRxCollection } from 'rxdb-hooks'
 import {
-  // PlusIcon,
-  // ArchiveIcon,
-  // MagnifyingGlassIcon,
-  // ChevronLeftIcon,
-  // ChevronRightIcon,
-  // ChevronDownIcon,
   DotsHorizontalIcon,
   LayersIcon,
-  DashboardIcon
+  DashboardIcon,
+  Pencil2Icon
 } from '@radix-ui/react-icons'
-
 import { CardDocument, DeckDocument } from '../../lib/types'
 import MoreOptionsMenu from '../../components/MoreOptionsMenu'
-// import CardEditor from '../../components/CardEditor'
-// import { REVIEW_STATUS } from '../../components/StatusMenu'
 import Review from '../../components/Review'
 import FilterMenu from '../../components/FilterMenu'
-// import DeckMenu from '../../components/DeckMenu'
-// import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as Collapsible from '@radix-ui/react-collapsible'
+import Editor from '../../components/Editor'
 
-// function StudyMenu() {
-//   return (
-//     <DropdownMenu.Root modal={false}>
-//       <DropdownMenu.Trigger
-//         aria-label="More options"
-//         className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#9da2ff]"
-//       >
-//         <span>Study</span>
-//         <ChevronDownIcon className="w-4 h-4" />
-//       </DropdownMenu.Trigger>
-//       <DropdownMenu.Portal>
-//         <DropdownMenu.Content
-//           align="end"
-//           sideOffset={5}
-//           className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
-//         >
-//           <Link
-//             href="/vocabulary?study=flashcards"
-//             className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-//           >
-//             Flashcards
-//           </Link>
-//           <Link
-//             href="/vocabulary?study=match"
-//             className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-//           >
-//             Match
-//           </Link>
-//         </DropdownMenu.Content>
-//       </DropdownMenu.Portal>
-//     </DropdownMenu.Root>
-//   )
-// }
+function Card({ doc }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Collapsible.Root open={open} onOpenChange={setOpen}>
+      {!open && (
+        <div
+          key={doc.id}
+          className="flex items-center rounded-md h-14 bg-[#303136] p-4 whitespace-pre-wrap"
+        >
+          <div className="flex-1 grid grid-cols-[1fr_2fr] divide-x divide-white/40">
+            <div className="pr-8">{doc.word || ' '}</div>
+            <div className="px-8">{doc.meaning || ' '}</div>
+          </div>
+          <div>
+            <Collapsible.Trigger className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
+              <Pencil2Icon className="w-4 h-4" />
+            </Collapsible.Trigger>
+            <MoreOptionsMenu doc={doc} edit={() => setOpen(true)} />
+          </div>
+        </div>
+      )}
+      <Collapsible.Content asChild>
+        <Editor close={() => setOpen(false)} card={doc} />
+      </Collapsible.Content>
+    </Collapsible.Root>
+  )
+}
 
 export default function Vocabulary() {
   const router = useRouter()
@@ -289,18 +276,19 @@ export default function Vocabulary() {
         {wordDocuments && wordDocuments?.length !== 0 && (
           <div className="flex flex-col gap-3">
             {wordDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center rounded-md h-14 bg-[#303136] p-4 whitespace-pre-wrap"
-              >
-                <div className="flex-1 grid grid-cols-[1fr_2fr] divide-x divide-white/40">
-                  <div className="pr-8">{doc.word || ' '}</div>
-                  <div className="px-8">{doc.meaning || ' '}</div>
-                </div>
-                <div>
-                  <MoreOptionsMenu doc={doc} />
-                </div>
-              </div>
+              // <div
+              //   key={doc.id}
+              //   className="flex items-center rounded-md h-14 bg-[#303136] p-4 whitespace-pre-wrap"
+              // >
+              //   <div className="flex-1 grid grid-cols-[1fr_2fr] divide-x divide-white/40">
+              //     <div className="pr-8">{doc.word || ' '}</div>
+              //     <div className="px-8">{doc.meaning || ' '}</div>
+              //   </div>
+              //   <div>
+              //     <MoreOptionsMenu doc={doc} />
+              //   </div>
+              // </div>
+              <Card key={doc.id} doc={doc} />
             ))}
           </div>
         )}
