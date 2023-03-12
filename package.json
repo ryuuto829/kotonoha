@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "pnpm exec playwright test"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.13",
@@ -44,6 +45,7 @@
     "wanakana": "^5.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.31.2",
     "@types/lodash": "^4.14.191",
     "@types/wanakana": "^4.0.3",
     "autoprefixer": "^10.4.13",
