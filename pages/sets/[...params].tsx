@@ -5,7 +5,8 @@ import {
   DotsHorizontalIcon,
   LayersIcon,
   DashboardIcon,
-  Pencil2Icon
+  Pencil2Icon,
+  TrashIcon
 } from '@radix-ui/react-icons'
 import { AppDatabase, CardDocument, DeckDocument } from '../../lib/types'
 import Review from '../../components/Review'
@@ -16,8 +17,16 @@ import { useRxDB, useRxQuery } from '../../lib/rxdb-hooks'
 import TermCard from '../../components/TermCard'
 import Editor from '../../components/Editor'
 import * as Collapsible from '@radix-ui/react-collapsible'
+import FilterMenu from '../../components/FilterMenu'
 
-export function SetMenu({ set }: {}) {
+export function SetMenu({ set }: { set: DeckDocument }) {
+  const router = useRouter()
+
+  const deleteSet = async () => {
+    await set.remove()
+    router.push('/sets')
+  }
+
   return (
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
@@ -38,6 +47,13 @@ export function SetMenu({ set }: {}) {
               <span>Edit</span>
             </button>
           </SetModal>
+          <button
+            onClick={deleteSet}
+            className="flex items-center gap-2.5 mx-1.5 px-1.5 w-full h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+          >
+            <TrashIcon className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
@@ -47,9 +63,13 @@ export function SetMenu({ set }: {}) {
 export default function Vocabulary() {
   const db = useRxDB<AppDatabase>()
   const router = useRouter()
-  const [srs, review] = router.asPath.split('/').slice(2)
+  const deckId = router.query?.params?.toString()
+  const study = router.query?.study?.toString()
 
-  const decksQuery = useMemo(() => db.decks?.findOne(srs), [db.decks, srs])
+  const decksQuery = useMemo(
+    () => db.decks?.findOne(deckId),
+    [db.decks, deckId]
+  )
   const { data: deck } = useRxQuery<DeckDocument>(decksQuery)
 
   const [openEditor, setOpenEditor] = useState(false)
@@ -58,48 +78,54 @@ export default function Vocabulary() {
   const [sort, setSort] = useState('createdAt')
   const [status, setStatus] = useState(['1', '2', '3', '4', '5'])
   const [ascending, setAscending] = useState(false)
-  const [search, setSearch] = useState('')
+  // const [search, setSearch] = useState('')
 
   const cardsQuery = useMemo(() => {
     return db.cards
       .find(
-        srs === 'all' || srs === 'srs'
-          ? {
-              selector: {
-                srsDueDate: {
-                  $or: [
-                    {
-                      srsDueDate: {
-                        $lte:
-                          srs === 'srs' &&
-                          new Date().toISOString().split('T')[0],
-                        $ne: ''
-                      }
-                    },
-                    { srsDueDate: { $gte: srs !== 'srs' && '' } }
-                  ]
-                },
-                status: {
-                  $in: status.map((x) => Number(x))
-                },
-                word: {
-                  $regex: search !== null ? new RegExp(`^${search}`) : ''
-                }
-              }
-            }
-          : {
-              selector: {
-                deckId: srs
-              }
-            }
+        // srs === 'all' || srs === 'srs'
+        // ? {
+        // selector: {
+        //   srsDueDate: {
+        //     $or: [
+        //       {
+        //         srsDueDate: {
+        //           $lte:
+        //             srs === 'srs' &&
+        //             new Date().toISOString().split('T')[0],
+        //           $ne: ''
+        //         }
+        //       },
+        //       { srsDueDate: { $gte: srs !== 'srs' && '' } }
+        //     ]
+        //   },
+        //   status: {
+        //     $in: status.map((x) => Number(x))
+        //   }
+        // word: {
+        //   $regex: search !== null ? new RegExp(`^${search}`) : ''
+        // }
+        // }
+        // }
+        // : {
+        {
+          selector: {
+            deckId: deckId
+          }
+        }
+        // }
       )
       .sort({ [sort]: ascending ? 'asc' : 'desc' })
-  }, [db.cards, ascending, sort, status, search, srs])
+  }, [db.cards, ascending, sort, deckId])
   const { data: cards } = useRxQuery<CardDocument[]>(cardsQuery)
 
   // REVIEW PAGE
-  if (review === 'review' && cards?.length) {
-    return <Review cards={cards} srs={srs} />
+  if (study && cards) {
+    return <Review cards={cards} study={study} />
+  }
+
+  if (!deck) {
+    return <div>Loading ...</div>
   }
 
   // VOCABULARY PAGE
@@ -113,12 +139,12 @@ export default function Vocabulary() {
             {[
               {
                 name: 'Flashcards',
-                url: '/vocabulary?study=flashcards',
+                url: `${router.asPath}?study=flashcards`,
                 Icon: LayersIcon
               },
               {
                 name: 'Match',
-                url: '/vocabulary?study=match',
+                url: `${router.asPath}?study=match`,
                 Icon: DashboardIcon
               }
             ].map(({ name, url, Icon }) => (
@@ -143,58 +169,19 @@ export default function Vocabulary() {
             {'Terms in this set (' + (cards?.length || 0) + ')'}
           </h2>
 
-          {/* <FilterMenu
-            cards={cards}
+          <FilterMenu
+            // cards={cards}
             sort={sort}
             status={status}
             ascending={ascending}
-            changeCards={(value) => {
-              setCards(value)
-              setWordDocumentsOffset(0)
-            }}
+            // changeCards={(value) => {
+            //   setCards(value)
+            //   setWordDocumentsOffset(0)
+            // }}
             changeSort={setSort}
             changeStatus={setStatus}
             changeAscending={setAscending}
-          /> */}
-
-          {/* Search */}
-          {/* <div className="relative w-full">
-            <input
-              type="sumbit"
-              value={search}
-              placeholder="Search"
-              className="bg-transparent border border-white/40 rounded-2xl h-[30px] w-full pl-8"
-              onInput={(e) => setSearch(e.currentTarget.value)}
-            />
-            <div className="absolute top-0 left-0 h-[30px] w-[30px] flex items-center justify-center">
-              <MagnifyingGlassIcon className="w-5 h-5" />
-            </div>
-          </div> */}
-
-          {/* <div className="flex items-center space-x-2 justify-end"> */}
-          {/* Pagination */}
-          {/* <div className="flex items-center border border-white/40 rounded h-7 divide-x-2 divide-white/20">
-              <button
-                onClick={goToPreviousPage}
-                className="h-7 px-1.5 disabled:text-white/20"
-                disabled={wordDocumentsOffset === 0}
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-              </button>
-              <button
-                onClick={goToNextPage}
-                className="h-7 px-1.5 disabled:text-white/20"
-                disabled={
-                  wordDocumentsOffset + Number(cards) >= wordDocumentsCount
-                }
-              >
-                <ChevronRightIcon className="w-4 h-4" />
-              </button>
-            </div> */}
-          {/* View */}
-
-          {/* <DeckMenu deck={deck} /> */}
-          {/* </div> */}
+          />
         </div>
         {/* Empty */}
         {cards?.length === 0 && <div>No data</div>}

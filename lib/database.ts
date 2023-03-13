@@ -132,11 +132,7 @@ export const create = async () => {
       .exec()
 
     cards.forEach(async (x) => {
-      await x.update({
-        $set: {
-          deckId: null
-        }
-      })
+      await x.remove()
     })
   }, false)
 

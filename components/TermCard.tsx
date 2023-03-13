@@ -82,7 +82,7 @@ export default function TermCard({
     <Collapsible.Root open={openEditor} onOpenChange={setOpenEditor}>
       {/* Card */}
       {!openEditor && (
-        <div className="flex items-center rounded-md h-14 bg-[#303136] p-4 whitespace-pre-wrap">
+        <div className="flex items-center rounded-md min-h-14 bg-[#303136] p-4 whitespace-pre-wrap">
           <div className="flex-1 grid grid-cols-[1fr_2fr] divide-x divide-white/40">
             <div className="pr-8">{card?.word || ' '}</div>
             <div className="px-8">{card?.meaning || ' '}</div>

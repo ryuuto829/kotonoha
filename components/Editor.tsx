@@ -147,7 +147,7 @@ export default function Editor({
       })
     }
 
-    if (!card && !deckId) {
+    if (!card && !deckId && !deck) {
       await db?.decks?.insert({
         id: newSetId,
         name: 'New set',

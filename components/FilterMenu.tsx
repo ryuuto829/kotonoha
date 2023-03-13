@@ -243,7 +243,7 @@ export default function FilterMenu({
           <DropdownMenu.Separator className="h-[1px] bg-white/10 my-1.5" />
 
           {/* Load limit submenu */}
-          <DropdownMenu.Sub open={openLimit} onOpenChange={setOpenLimit}>
+          {/* <DropdownMenu.Sub open={openLimit} onOpenChange={setOpenLimit}>
             <DropdownMenu.SubTrigger className="h-8 flex items-center space-x-2.5 rounded-[5px] mx-1 px-1.5 hover:bg-white/5">
               <ArrowDownIcon className="w-5 h-5" />
               <div className="flex items-center justify-between flex-1">
@@ -283,7 +283,7 @@ export default function FilterMenu({
                 </DropdownMenu.RadioGroup>
               </DropdownMenu.SubContent>
             </DropdownMenu.Portal>
-          </DropdownMenu.Sub>
+          </DropdownMenu.Sub> */}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
