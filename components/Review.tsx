@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+// import Link from 'next/link'
 import * as Progress from '@radix-ui/react-progress'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
-import {
-  ArrowRightIcon,
-  ReloadIcon,
-  Cross1Icon,
-  CheckIcon,
-  ArrowDownIcon
-} from '@radix-ui/react-icons'
+import { Cross1Icon, CheckIcon } from '@radix-ui/react-icons'
 import shuffle from 'lodash/shuffle'
 import type { CardDocument } from '../lib/types'
-import { _updateDueDate, _formatDueDate } from '../lib/words'
 import Tooltip from '../components/Tooltip'
+import { addDays } from 'date-fns'
+
+const DEFAULT_REVIEW_INTERVALS = [1, 3, 7, 15]
 
 /**
  * Generate a collection of document indexes
@@ -27,7 +23,6 @@ function getInitialIndexes(length: number) {
  */
 function shiftIndexes(indexes: number[], current: number) {
   const shiftedIndexes = [...indexes]
-
   const [currentIndex] = shiftedIndexes.splice(current, 1)
   shiftedIndexes.push(currentIndex)
 
@@ -39,10 +34,9 @@ export default function Review({
   study
 }: {
   cards: CardDocument[]
-  study: string
+  study: 'flashcards' | 'match' | 'srs'
 }) {
   const [indexes, setIndexes] = useState(getInitialIndexes(cards.length))
-
   const [progress, setProgress] = useState(0)
   const [back, setBack] = useState(false)
 
@@ -55,40 +49,32 @@ export default function Review({
       flipCard()
     }
 
-    if (key === ' ' && !back) {
-      flipCard()
-    }
-
-    if (key === 'ArrowRight' && back) {
+    if (key === 'ArrowRight' && back && study === 'srs') {
       await rememberCard()
-      // skipCard()
     }
 
-    if (key === 'ArrowLeft' && study === 'flashcards' && back) {
-      reviewCardAgain()
+    if (key === 'ArrowRight' && back && study === 'flashcards') {
+      await nextCard()
     }
 
-    if (key === 'ArrowLeft' && study === 'srs' && back) {
+    if (key === 'ArrowLeft' && back && study === 'srs') {
       forgetCard()
+    }
+
+    if (key === 'ArrowLeft' && back && study === 'flashcards') {
+      reviewCardAgain()
     }
   }
 
   useEffect(() => {
-    if (progress !== indexes.length) {
-      window.addEventListener('keydown', handleKeydown)
-    }
+    if (progress === indexes.length) return
+    window.addEventListener('keydown', handleKeydown)
 
     return () => {
       window.removeEventListener('keydown', handleKeydown)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [back, progress, indexes])
-
-  const skipCard = () => {
-    setBack(false)
-    setProgress(progress + 1)
-    setSkipped(skipped + 1)
-  }
 
   const flipCard = () => {
     setBack(!back)
@@ -101,11 +87,14 @@ export default function Review({
 
   const forgetCard = async () => {
     const today = new Date().toISOString()
-    const document = cards[indexes[progress]]
+    const card = cards[indexes[progress]]
 
-    await document.update({
+    await card.update({
       $set: {
-        srsDueDate: _updateDueDate(document.status, today),
+        srsDueDate: addDays(
+          new Date(),
+          DEFAULT_REVIEW_INTERVALS[card.status - 1]
+        ),
         lastReviewed: today
       }
     })
@@ -115,30 +104,40 @@ export default function Review({
     setForget(forget + 1)
   }
 
+  const nextCard = async () => {
+    const today = new Date().toISOString()
+    const card = cards[indexes[progress]]
+
+    await card.update({
+      $set: {
+        lastReviewed: today
+      }
+    })
+
+    setBack(false)
+    setProgress(progress + 1)
+    setRemembered(remembered + 1)
+  }
+
   const rememberCard = async () => {
     const today = new Date().toISOString()
-    const document = cards[indexes[progress]]
+    const card = cards[indexes[progress]]
 
-    // 1. Custom review
-    let fields: any = {
-      lastReviewed: today,
-      lastReviewedCorrect: today
-    }
-
-    // 2. Due for review - remember
-    if (study === 'srs') {
-      const newStatus = document.status < 5 && document.status + 1
-
-      fields = {
-        ...fields,
-        srsDueDate: newStatus ? _updateDueDate(newStatus, today) : '',
-        status: newStatus || document.status,
-        statusChangedDate:
-          newStatus !== document.status ? today : document.status
+    await card.update({
+      $set: {
+        lastReviewed: today,
+        srsDueDate: addDays(
+          new Date(),
+          card.statusChangedDate ? DEFAULT_REVIEW_INTERVALS[card.status] : 1
+        ),
+        lastReviewedCorrect: today,
+        statusChangedDate: today,
+        previousStatus: card.status
+      },
+      $inc: {
+        status: 1
       }
-    }
-
-    await document.update({ $set: { ...fields } })
+    })
 
     setBack(false)
     setProgress(progress + 1)
@@ -154,7 +153,6 @@ export default function Review({
           <span>/</span>
           <span>{indexes.length}</span>
         </div>
-
         <Progress.Root
           className="relative overflow-hidden bg-white/20 rounded-full w-full h-2"
           value={progress}
@@ -170,7 +168,6 @@ export default function Review({
           />
         </Progress.Root>
       </div>
-
       {/* Card content */}
       {progress < indexes.length && (
         <div
@@ -198,24 +195,24 @@ export default function Review({
             </ScrollArea.Scrollbar>
             <ScrollArea.Corner />
           </ScrollArea.Root>
-
+          {/* Controls */}
           <div className={`grid grid-cols-2 gap-4 ${back ? '' : 'invisible'}`}>
             <Tooltip content="Mark card as forgotten" keyBinding="F">
               <button
                 className="inline-flex items-center justify-center font-semibold gap-2 rounded-lg p-4 bg-transparent border-2 border-white/20"
-                onClick={reviewCardAgain}
+                onClick={study === 'srs' ? forgetCard : reviewCardAgain}
               >
                 <Cross1Icon className="w-4 h-4" />
-                <span>Again</span>
+                <span>{study === 'srs' ? 'Forgot' : 'Again'}</span>
               </button>
             </Tooltip>
             <Tooltip content="Mark card as remembered" keyBinding="space">
               <button
                 className="inline-flex items-center justify-center font-semibold gap-2 rounded-lg p-4 bg-transparent border-2 border-white/20"
-                onClick={rememberCard}
+                onClick={study === 'srs' ? rememberCard : nextCard}
               >
                 <CheckIcon className="w-4 h-4" />
-                <span>Remembered</span>
+                <span>{study === 'srs' ? 'Remembered' : 'Next'}</span>
               </button>
             </Tooltip>
           </div>

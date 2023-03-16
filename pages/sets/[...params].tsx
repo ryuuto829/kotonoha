@@ -1,23 +1,24 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { formatISO } from 'date-fns'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as Collapsible from '@radix-ui/react-collapsible'
 import {
   DotsHorizontalIcon,
   LayersIcon,
   DashboardIcon,
   Pencil2Icon,
-  TrashIcon
+  TrashIcon,
+  CounterClockwiseClockIcon
 } from '@radix-ui/react-icons'
-import { AppDatabase, CardDocument, DeckDocument } from '../../lib/types'
 import Review from '../../components/Review'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-
 import SetModal from '../../components/SetModal'
-import { useRxDB, useRxQuery } from '../../lib/rxdb-hooks'
 import TermCard from '../../components/TermCard'
 import Editor from '../../components/Editor'
-import * as Collapsible from '@radix-ui/react-collapsible'
 import FilterMenu from '../../components/FilterMenu'
+import { useRxDB, useRxQuery } from '../../lib/rxdb-hooks'
+import { AppDatabase, CardDocument, DeckDocument } from '../../lib/types'
 
 export function SetMenu({ set }: { set: DeckDocument }) {
   const router = useRouter()
@@ -64,12 +65,19 @@ export default function Vocabulary() {
   const db = useRxDB<AppDatabase>()
   const router = useRouter()
   const deckId = router.query?.params?.toString()
-  const study = router.query?.study?.toString()
+  const study = router.query?.study?.toString() as
+    | 'flashcards'
+    | 'match'
+    | 'srs'
+    | undefined
+
+  const today = formatISO(new Date(), { representation: 'date' })
 
   const decksQuery = useMemo(
     () => db.decks?.findOne(deckId),
     [db.decks, deckId]
   )
+
   const { data: deck } = useRxQuery<DeckDocument>(decksQuery)
 
   const [openEditor, setOpenEditor] = useState(false)
@@ -121,7 +129,14 @@ export default function Vocabulary() {
 
   // REVIEW PAGE
   if (study && cards) {
-    return <Review cards={cards} study={study} />
+    return (
+      <Review
+        cards={cards?.filter((x) =>
+          study === 'srs' ? x.srsDueDate <= today : true
+        )}
+        study={study}
+      />
+    )
   }
 
   if (!deck) {
@@ -130,87 +145,97 @@ export default function Vocabulary() {
 
   // VOCABULARY PAGE
   return (
-    <>
-      <section className="flex flex-col gap-3">
-        {/* Toggle & review */}
-        <div className="flex space-x-4 items-center justify-between">
-          <h1 className="text-3xl font-bold">{deck?.name || 'All'}</h1>
-          <div className="flex items-center space-x-2">
-            {[
-              {
-                name: 'Flashcards',
-                url: `${router.asPath}?study=flashcards`,
-                Icon: LayersIcon
-              },
-              {
-                name: 'Match',
-                url: `${router.asPath}?study=match`,
-                Icon: DashboardIcon
-              }
-            ].map(({ name, url, Icon }) => (
-              <Link
-                key={name}
-                href={url}
-                className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136]"
-              >
-                <Icon className="w-4 h-4" />
-                <span>{name}</span>
-              </Link>
-            ))}
-
-            <SetMenu set={deck} />
-          </div>
+    <section className="flex flex-col gap-3">
+      {/* Toggle & review */}
+      <div className="flex space-x-4 items-center justify-between">
+        <h1 className="text-3xl font-bold">{deck?.name || 'All'}</h1>
+        <div className="flex items-center space-x-2">
+          <SetMenu set={deck} />
         </div>
-        <p>Description</p>
+      </div>
+      <p className={`${deck?.description ? '' : 'hidden'}`}>
+        {deck?.description}
+      </p>
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          {
+            name: 'Flashcards',
+            url: `${router.asPath}?study=flashcards`,
+            Icon: LayersIcon
+          },
+          {
+            name: 'Match',
+            url: `${router.asPath}?study=match`,
+            Icon: DashboardIcon
+          },
+          {
+            name: 'Learn',
+            url: `${router.asPath}?study=srs`,
+            Icon: CounterClockwiseClockIcon,
+            count: cards?.filter((x) => x.srsDueDate <= today).length || 0
+          }
+        ].map(({ name, url, Icon, count }) => {
+          if (count === 0) return null
 
-        {/* Search & view */}
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold">
-            {'Terms in this set (' + (cards?.length || 0) + ')'}
-          </h2>
+          return (
+            <Link
+              key={name}
+              href={url}
+              className="inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136]"
+            >
+              <Icon className="w-4 h-4" />
+              <span>{`${name} ${count ? '(' + count + ')' : ''}`}</span>
+            </Link>
+          )
+        })}
+      </div>
+      {/* Search & view */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">
+          {'Terms in this set (' + (cards?.length || 0) + ')'}
+        </h2>
 
-          <FilterMenu
-            // cards={cards}
-            sort={sort}
-            status={status}
-            ascending={ascending}
-            // changeCards={(value) => {
-            //   setCards(value)
-            //   setWordDocumentsOffset(0)
-            // }}
-            changeSort={setSort}
-            changeStatus={setStatus}
-            changeAscending={setAscending}
-          />
+        <FilterMenu
+          // cards={cards}
+          sort={sort}
+          status={status}
+          ascending={ascending}
+          // changeCards={(value) => {
+          //   setCards(value)
+          //   setWordDocumentsOffset(0)
+          // }}
+          changeSort={setSort}
+          changeStatus={setStatus}
+          changeAscending={setAscending}
+        />
+      </div>
+      {/* Empty */}
+      {cards?.length === 0 && <div>No data</div>}
+      {/* Terms */}
+      {cards && deck && cards?.length !== 0 && (
+        <div className="flex flex-col gap-3">
+          {cards.map((doc) => (
+            <TermCard key={doc.id} card={doc} deck={deck} />
+          ))}
         </div>
-        {/* Empty */}
-        {cards?.length === 0 && <div>No data</div>}
-        {/* Terms */}
-        {cards && deck && cards?.length !== 0 && (
-          <div className="flex flex-col gap-3">
-            {cards.map((doc) => (
-              <TermCard key={doc.id} card={doc} deck={deck} />
-            ))}
-          </div>
-        )}
-        {/* Create card */}
-        <Collapsible.Root
-          open={openEditor}
-          onOpenChange={setOpenEditor}
-          className="flex items-center justify-center"
+      )}
+      {/* Create card */}
+      <Collapsible.Root
+        open={openEditor}
+        onOpenChange={setOpenEditor}
+        className="flex items-center justify-center"
+      >
+        <Collapsible.Trigger
+          className={`inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136] ${
+            openEditor ? 'hidden' : ''
+          }`}
         >
-          <Collapsible.Trigger
-            className={`inline-flex items-center gap-2 rounded-lg h-10 py-2 px-4 bg-[#303136] ${
-              openEditor ? 'hidden' : ''
-            }`}
-          >
-            Add a new term
-          </Collapsible.Trigger>
-          <Collapsible.Content className="w-full">
-            <Editor close={() => setOpenEditor(false)} deck={deck} />
-          </Collapsible.Content>
-        </Collapsible.Root>
-      </section>
-    </>
+          Add a new term
+        </Collapsible.Trigger>
+        <Collapsible.Content className="w-full">
+          <Editor close={() => setOpenEditor(false)} deck={deck} />
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </section>
   )
 }

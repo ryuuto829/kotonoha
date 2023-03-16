@@ -5,17 +5,17 @@ export function _formatDueDate(date: Date) {
   return date.toISOString().split('T')[0]
 }
 
-export function _updateDueDate(
-  status: number,
-  startDay: string,
-  intervals: number[] = DEFAULT_REVIEW_INTERVALS
-) {
-  if (status === 5) return ''
+// export function _updateDueDate(
+//   status: number,
+//   startDay: string,
+//   intervals: number[] = DEFAULT_REVIEW_INTERVALS
+// ) {
+//   if (status === 5) return ''
 
-  return _formatDueDate(
-    new Date(new Date(startDay).getTime() + MS_IN_DAY * intervals[status - 1])
-  )
-}
+//   return _formatDueDate(
+//     new Date(new Date(startDay).getTime() + MS_IN_DAY * intervals[status - 1])
+//   )
+// }
 
 export function _calculateDueDate(
   status: number,
