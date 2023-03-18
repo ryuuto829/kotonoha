@@ -2,8 +2,8 @@ import { ReactElement, useRef, useState } from 'react'
 // import StatusMenu from './StatusMenu'
 import {
   _formatCardContent,
-  _calculateDueDate,
-  _updateDueDate
+  _calculateDueDate
+  // _updateDueDate
 } from '../lib/words'
 import { useRxCollection } from 'rxdb-hooks'
 import { nanoid } from 'nanoid'
@@ -57,10 +57,7 @@ export function EditorContent({
           word: word || '',
           meaning: meaning || '',
           updatedAt: today,
-          srsDueDate: _updateDueDate(
-            status,
-            card?.lastReviewed || card?.createdAt
-          ),
+          srsDueDate: '',
           status,
           previousStatus: card.status,
           statusChangedDate:

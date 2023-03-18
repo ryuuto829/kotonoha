@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
 import {
   _calculateDueDate,
-  _formatCardContent,
-  _updateDueDate
+  _formatCardContent
+  // _updateDueDate
 } from '../lib/words'
 import { nanoid } from 'nanoid'
 import { useRxDB } from '..//lib/rxdb-hooks'

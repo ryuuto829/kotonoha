@@ -139,7 +139,7 @@ export default function Vocabulary() {
     )
   }
 
-  if (!deck) {
+  if (!deck && !cards) {
     return <div>Loading ...</div>
   }
 

@@ -5,19 +5,23 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Avatar from '@radix-ui/react-avatar'
 import {
+  ChevronDownIcon,
+  CounterClockwiseClockIcon,
   Cross1Icon,
   EnterIcon,
   GearIcon,
   HamburgerMenuIcon,
   PlusIcon,
-  ReaderIcon
+  ReaderIcon,
+  StackIcon
 } from '@radix-ui/react-icons'
 import CardEditor from '../components/CardEditor'
+import { useRxDB, useRxQuery } from '../lib/rxdb-hooks'
+import { AppDatabase } from '../lib/types'
 
 const APP_NAVIGATION_LINKS = [
   { name: 'Dictionary', url: '/dictionary' },
-  { name: 'Your library', url: '/sets' },
-  { name: 'Vocab?', url: '/vocabulary/all' }
+  { name: 'Your library', url: '/sets' }
 ]
 
 const PROFILE_NAVIGATION_LINKS = [
@@ -105,6 +109,45 @@ function Sidebar() {
 
 function Navbar() {
   const router = useRouter()
+  const db = useRxDB<AppDatabase>()
+
+  const countNew = useRxQuery(
+    db.cards.find({
+      selector: {
+        createdAt: {
+          $gte: new Date().toISOString().split('T')[0]
+        }
+      }
+    })
+  )
+
+  const countToday = useRxQuery(
+    db.cards.find({
+      selector: {
+        srsDueDate: {
+          $lte: new Date().toISOString().split('T')[0]
+        },
+        status: {
+          $ne: 5
+        }
+      }
+    })
+  )
+
+  const studyLinks = [
+    {
+      name: 'Due today',
+      url: '/study/today',
+      Icon: CounterClockwiseClockIcon,
+      count: countToday.data?.length
+    },
+    {
+      name: 'New cards',
+      url: '/study/new',
+      Icon: StackIcon,
+      count: countNew.data?.length
+    }
+  ]
 
   return (
     <div className="fixed top-0 z-40 w-full">
@@ -135,6 +178,42 @@ function Navbar() {
                 </Link>
               )
             })}
+            <DropdownMenu.Root modal={false}>
+              <DropdownMenu.Trigger className="hidden md:block px-3 hover:bg-white/5 transition-colors data-[state=open]:bg-white/5">
+                <span
+                  className={`relative inline-flex items-center gap-2 h-16 text-sm font-medium whitespace-nowrap leading-[64px] after:content-[''] after:h-1 after:bg-[#9da2ff] after:absolute after:bottom-0 after:w-full after:left-0 after:rounded-md ${
+                    router.asPath.startsWith('/study/')
+                      ? 'after:visible'
+                      : 'after:invisible'
+                  }`}
+                >
+                  Study
+                  <ChevronDownIcon />
+                </span>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  align="start"
+                  sideOffset={5}
+                  className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
+                >
+                  {studyLinks.map(({ name, url, Icon, count }) => {
+                    return (
+                      <DropdownMenu.Item key={url} asChild>
+                        <Link
+                          href={url}
+                          className="flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="flex-1">{name}</span>
+                          <span>{count || 0}</span>
+                        </Link>
+                      </DropdownMenu.Item>
+                    )
+                  })}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </nav>
         </div>
         {/* Content right */}

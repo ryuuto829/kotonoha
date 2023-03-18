@@ -76,6 +76,11 @@ export default function Review({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [back, progress, indexes])
 
+  useEffect(() => {
+    setIndexes(getInitialIndexes(cards.length))
+    setProgress(0)
+  }, [cards.length, study])
+
   const flipCard = () => {
     setBack(!back)
   }
@@ -94,7 +99,7 @@ export default function Review({
         srsDueDate: addDays(
           new Date(),
           DEFAULT_REVIEW_INTERVALS[card.status - 1]
-        ),
+        ).toISOString(),
         lastReviewed: today
       }
     })
@@ -129,7 +134,7 @@ export default function Review({
         srsDueDate: addDays(
           new Date(),
           card.statusChangedDate ? DEFAULT_REVIEW_INTERVALS[card.status] : 1
-        ),
+        ).toISOString(),
         lastReviewedCorrect: today,
         statusChangedDate: today,
         previousStatus: card.status
