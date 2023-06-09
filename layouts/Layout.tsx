@@ -5,6 +5,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Avatar from '@radix-ui/react-avatar'
 import {
+  CaretDownIcon,
   ChevronDownIcon,
   CounterClockwiseClockIcon,
   Cross1Icon,
@@ -18,6 +19,10 @@ import {
 import CardEditor from '../components/CardEditor'
 import { useRxDB, useRxQuery } from '../lib/rxdb-hooks'
 import { AppDatabase } from '../lib/types'
+import clsx from 'clsx'
+import site from '../utils/site'
+import * as NavigationMenu from '@radix-ui/react-navigation-menu'
+import { useScrollPosition } from '../utils/useScrollPosition'
 
 const APP_NAVIGATION_LINKS = [
   { name: 'Dictionary', url: '/dictionary' },
@@ -107,9 +112,62 @@ function Sidebar() {
   )
 }
 
+function MenuLink({ href, ...props }: { href: string; [x: string]: any }) {
+  const router = useRouter()
+
+  return (
+    <Link href={href} passHref>
+      <NavigationMenu.Link
+        active={router.pathname === href}
+        className="flex items-center gap-1 py-2 px-3 rounded-full leading-none text-white/40 hover:text-white/90 bg-transparent data-[active]:bg-slate-400/5 data-[active]:text-white/90 transition-all"
+        {...props}
+      />
+    </Link>
+  )
+}
+
+function Menu() {
+  return (
+    <NavigationMenu.Root>
+      <NavigationMenu.List className="flex items-center justify-center gap-2 list-none">
+        <NavigationMenu.Item>
+          <MenuLink href="/dictionary">Dictionary</MenuLink>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <MenuLink href="/sets">Your Library</MenuLink>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger className="group flex items-center gap-1 py-2 px-3 rounded-full leading-none text-white/40 hover:text-white/90 bg-transparent data-[active]:bg-slate-400/5 data-[active]:text-white/90 transition-all">
+            Study{''}
+            <CaretDownIcon
+              aria-hidden
+              className="group-data-[state=open]:-rotate-180 transition-transform"
+            />
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content className="absolute top-[50px] left-0 w-full">
+            <ul className="w-[600px] grid grid-rows-2 bg-black/20 p-[22px]">
+              <NavigationMenu.Item>
+                <NavigationMenu.Link asChild>
+                  <Link href="/sets">Due for today</Link>
+                </NavigationMenu.Link>
+              </NavigationMenu.Item>
+              <NavigationMenu.Item>
+                <NavigationMenu.Link asChild>
+                  <Link href="/sets">New</Link>
+                </NavigationMenu.Link>
+              </NavigationMenu.Item>
+            </ul>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+    </NavigationMenu.Root>
+  )
+}
+
 function Navbar() {
   const router = useRouter()
   const db = useRxDB<AppDatabase>()
+  const scrollPosition = useScrollPosition()
 
   const countNew = useRxQuery(
     db.cards.find({
@@ -150,74 +208,87 @@ function Navbar() {
   ]
 
   return (
-    <div className="fixed top-0 z-40 w-full">
-      <header className="px-4 h-16 flex items-center justify-between gap-3 bg-[#202124] shadow-[rgb(255,255,255,0.1)_0px_-1px_0px_inset]">
-        {/* Content left */}
-        <div className="inline-flex items-center gap-3">
-          <Sidebar />
-          <div className="hidden md:block">Logo</div>
-          <nav className="inline-flex items-center">
-            {APP_NAVIGATION_LINKS.map(({ name, url }) => {
-              const active = router.asPath.startsWith(url)
-                ? 'after:visible'
-                : 'after:invisible'
-
-              return (
-                <Link
-                  key={name}
-                  href={url}
-                  aria-label={name}
-                  tabIndex={0}
-                  className="hidden md:block px-3 hover:bg-white/5 transition-colors"
-                >
-                  <span
-                    className={`relative block h-16 text-sm font-medium whitespace-nowrap leading-[64px] after:content-[''] after:h-1 after:bg-[#9da2ff] after:absolute after:bottom-0 after:w-full after:left-0 after:rounded-md ${active}`}
-                  >
-                    {name}
-                  </span>
-                </Link>
-              )
-            })}
-            <DropdownMenu.Root modal={false}>
-              <DropdownMenu.Trigger className="hidden md:block px-3 hover:bg-white/5 transition-colors data-[state=open]:bg-white/5">
-                <span
-                  className={`relative inline-flex items-center gap-2 h-16 text-sm font-medium whitespace-nowrap leading-[64px] after:content-[''] after:h-1 after:bg-[#9da2ff] after:absolute after:bottom-0 after:w-full after:left-0 after:rounded-md ${
-                    router.asPath.startsWith('/study/')
-                      ? 'after:visible'
-                      : 'after:invisible'
-                  }`}
-                >
-                  Study
-                  <ChevronDownIcon />
-                </span>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  align="start"
-                  sideOffset={5}
-                  className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
-                >
-                  {studyLinks.map(({ name, url, Icon, count }) => {
-                    return (
-                      <DropdownMenu.Item key={url} asChild>
-                        <Link
-                          href={url}
-                          className="flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-                        >
-                          <Icon className="w-4 h-4" />
-                          <span className="flex-1">{name}</span>
-                          <span>{count || 0}</span>
-                        </Link>
-                      </DropdownMenu.Item>
-                    )
-                  })}
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
-          </nav>
+    <div
+      className={clsx(
+        'fixed top-0 z-40 flex justify-center w-full max-w-full min-h-[64px] transition-shadow',
+        scrollPosition > 0
+          ? 'bg-[#202124]/50 shadow-[hsla(0,0%,100%,0.1)_0px_-1px_0px_inset] before:contents-[""] before:absolute before:-z-10 before:w-full before:h-full before:backdrop-blur-sm before:backdrop-saturate-150 before:top-[-1px] before:[backface-visibility:hidden]'
+          : 'bg-transparent'
+      )}
+    >
+      <header className="max-w-7xl w-full px-6 mx-auto flex items-center">
+        {/* Logo */}
+        <div className="flex-1 justify-start">
+          <a href={site.url} rel="home" className="text-lg font-bold">
+            こと
+          </a>
         </div>
-        {/* Content right */}
-        <div className="inline-flex items-center gap-3">
+        {/* Navigation */}
+        <Menu />
+        {/* <nav className="flex-1 flex items-center justify-center"> */}
+        {/* {APP_NAVIGATION_LINKS.map(({ name, url }) => {
+            const active = router.asPath.startsWith(url)
+              ? 'after:visible'
+              : 'after:invisible'
+
+            return (
+              <Link
+                key={name}
+                href={url}
+                aria-label={name}
+                tabIndex={0}
+                className="hidden md:block py-2 px-3 hover:bg-white/5 transition-colors"
+              >
+                <span
+                  className={`relative block h-16 text-sm font-medium whitespace-nowrap leading-[64px] after:content-[''] after:h-1 after:bg-[#9da2ff] after:absolute after:bottom-0 after:w-full after:left-0 after:rounded-md ${active}`}
+                >
+                  {name}
+                </span>
+              </Link>
+            )
+          })} */}
+        {/* <DropdownMenu.Root modal={false}>
+            <DropdownMenu.Trigger className="hidden md:block px-3 hover:bg-white/5 transition-colors data-[state=open]:bg-white/5">
+              <span
+                className={`relative inline-flex items-center gap-2 h-16 text-sm font-medium whitespace-nowrap leading-[64px] after:content-[''] after:h-1 after:bg-[#9da2ff] after:absolute after:bottom-0 after:w-full after:left-0 after:rounded-md ${
+                  router.asPath.startsWith('/study/')
+                    ? 'after:visible'
+                    : 'after:invisible'
+                }`}
+              >
+                Study
+                <ChevronDownIcon />
+              </span>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="start"
+                sideOffset={5}
+                className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
+              >
+                {studyLinks.map(({ name, url, Icon, count }) => {
+                  return (
+                    <DropdownMenu.Item key={url} asChild>
+                      <Link
+                        href={url}
+                        className="flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="flex-1">{name}</span>
+                        <span>{count || 0}</span>
+                      </Link>
+                    </DropdownMenu.Item>
+                  )
+                })}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root> */}
+        {/* </nav> */}
+
+        <Sidebar />
+
+        {/* Profile */}
+        <div className="flex-1 ml-auto flex items-center justify-end gap-3">
           <CardEditor modal={true}>
             <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
               <PlusIcon className="w-5 h-5" />
@@ -232,7 +303,7 @@ function Navbar() {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <section className="min-h-screen">
+    <section className="min-h-screen relative">
       <Navbar />
       <main
         aria-label="Main content"

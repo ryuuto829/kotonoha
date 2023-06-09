@@ -37,6 +37,10 @@ export default function Study() {
 
   const { data: cards } = useRxQuery<CardDocument[]>(cardsQuery)
 
+  if (cards?.length === 0) {
+    return <div>No cards</div>
+  }
+
   if (!cards) {
     return <div>Loading ...</div>
   }
