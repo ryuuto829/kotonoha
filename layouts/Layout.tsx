@@ -1,19 +1,11 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-// import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import * as Dialog from '@radix-ui/react-dialog'
 import * as Avatar from '@radix-ui/react-avatar'
 import {
   ChevronDownIcon,
   CounterClockwiseClockIcon,
-  Cross1Icon,
-  // EnterIcon,
-  // GearIcon,
-  HamburgerMenuIcon,
   PlusIcon
-  // ReaderIcon
-  // StackIcon
 } from '@radix-ui/react-icons'
 import CardEditor from '../components/CardEditor'
 // import { useRxDB, useRxQuery } from '../lib/rxdb-hooks'
@@ -22,69 +14,19 @@ import clsx from 'clsx'
 import site from '../utils/site'
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { useScrollPosition } from '../utils/useScrollPosition'
-
-// const PROFILE_NAVIGATION_LINKS = [
-//   { name: 'Dashboard', url: '/dashboard', Icon: ReaderIcon },
-//   { name: 'Settings', url: '/settings', Icon: GearIcon }
-// ]
-
-// function ProfileMenu() {
-//   return (
-//     <DropdownMenu.Root modal={false}>
-//       <DropdownMenu.Trigger asChild>
-//         <Avatar.Root className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-600 border-2 border-transparent hover:border-[#9da2ff] data-[state=open]:border-[#9da2ff] transition-colors cursor-pointer">
-//           <Avatar.Fallback className="font-medium text-gray-300">
-//             DM
-//           </Avatar.Fallback>
-//         </Avatar.Root>
-//       </DropdownMenu.Trigger>
-//       <DropdownMenu.Portal>
-//         <DropdownMenu.Content
-//           align="end"
-//           sideOffset={5}
-//           className="py-1.5 z-50 w-[210px] rounded-md bg-[#303136] border border-white/10 text-sm"
-//         >
-//           {PROFILE_NAVIGATION_LINKS.map(({ name, url, Icon }) => (
-//             <DropdownMenu.Item key={name} asChild>
-//               <Link
-//                 href={url}
-//                 className="flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-//               >
-//                 <Icon className="w-4 h-4" />
-//                 <span>{name}</span>
-//               </Link>
-//             </DropdownMenu.Item>
-//           ))}
-//           <hr className="h-[1px] bg-white/10 my-1 border-none" />
-//           <Link
-//             href="/login"
-//             className="flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-//           >
-//             <EnterIcon className="w-4 h-4" />
-//             <span>Log in</span>
-//           </Link>
-//           <hr className="h-[1px] bg-white/10 my-1 border-none" />
-//           <a
-//             href="#"
-//             className="text-xs flex items-center gap-2.5 mx-1.5 px-1.5 h-8 max-w-[calc(100%-12px)] rounded hover:bg-white/5 outline-none"
-//           >
-//             <span className="ml-1">v0.1.0</span>
-//             <span>·</span>
-//             <span>What&apos;s new</span>
-//           </a>
-//         </DropdownMenu.Content>
-//       </DropdownMenu.Portal>
-//     </DropdownMenu.Root>
-//   )
-// }
+import * as Collapsible from '@radix-ui/react-collapsible'
 
 function ProfileMenu() {
   return (
-    <NavigationMenu.Item className="relative w-full md:w-auto">
+    <NavigationMenu.Item className="w-full md:w-auto" value="sub1">
       <NavigationMenu.Trigger
         onPointerMove={(e) => e.preventDefault()}
         onPointerLeave={(e) => e.preventDefault()}
-        className={clsx(menuLinkStyle, 'group data-[state=open]:text-white/90')}
+        className={clsx(
+          menuLinkStyle,
+          'group data-[state=open]:text-white/90',
+          'hidden md:block'
+        )}
       >
         <Avatar.Root className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-600 border-2 border-transparent hover:border-[#9da2ff] data-[state=open]:border-[#9da2ff] transition-colors cursor-pointer">
           <Avatar.Fallback className="font-medium text-gray-300">
@@ -93,10 +35,21 @@ function ProfileMenu() {
         </Avatar.Root>
       </NavigationMenu.Trigger>
       <NavigationMenu.Content
-        className="md:absolute top-full left-full -translate-x-full"
-        onPointerLeave={(e) => e.preventDefault()}
+        className={clsx(
+          'relative',
+          'md:absolute md:top-full md:left-full md:-translate-x-full'
+        )}
+        // onPointerLeave={(e) => e.preventDefault()}
       >
-        <ul className="w-full md:w-[250px] flex flex-col rounded-lg shadow-white bg-[#303136] p-2 text-sm">
+        <p className="flex items-center h-20 text-white/40 border-b border-white/10">
+          email@gmail.com
+        </p>
+        <NavigationMenu.List
+          className={clsx(
+            'flex flex-col',
+            'md:w-[250px] md:shadow-white md:rounded-lg md:p-2 md:text-sm md:bg-[#303136]'
+          )}
+        >
           {[
             {
               href: '/dashboard',
@@ -112,56 +65,24 @@ function ProfileMenu() {
               <NavigationMenu.Link asChild>
                 <Link
                   href={href}
-                  className="flex flex-col p-3 rounded-lg hover:bg-white/5"
+                  className={clsx(
+                    'flex items-center hover:bg-white/5 h-12 border-b border-white/10',
+                    'md:font-bold md:p-3 md:rounded-lg'
+                  )}
                 >
-                  <div className="flex items-center gap-2 font-bold">
-                    {title}
-                  </div>
+                  {title}
                 </Link>
               </NavigationMenu.Link>
             </NavigationMenu.Item>
           ))}
-        </ul>
+        </NavigationMenu.List>
       </NavigationMenu.Content>
     </NavigationMenu.Item>
   )
 }
 
-function Sidebar() {
-  return (
-    <Dialog.Root modal={false}>
-      {/* Open button */}
-      <Dialog.Trigger className="h-8 w-8 md:hidden inline-flex items-center justify-center rounded hover:bg-white/5 data-[state=open]:hidden transition-colors">
-        <HamburgerMenuIcon className="w-5 h-5" />
-      </Dialog.Trigger>
-      {/* Close button */}
-      <Dialog.Trigger className="h-8 w-8 md:hidden inline-flex items-center justify-center rounded hover:bg-white/5 data-[state=closed]:hidden transition-colors">
-        <Cross1Icon className="w-5 h-5" />
-      </Dialog.Trigger>
-      <Dialog.Content className="fixed inset-0 mt-[64px] bg-[#202124] z-50 flex flex-col">
-        <NavigationMenu.Root className="">
-          <NavigationMenu.List className="flex flex-col items-center justify-center gap-2 list-none">
-            <MenuLink href="/dictionary">Dictionary</MenuLink>
-            <MenuLink href="/sets">Your Library</MenuLink>
-            <StudyMenu />
-          </NavigationMenu.List>
-
-          <div className="flex flex-col flex-1 ml-auto items-center justify-end gap-3">
-            <CardEditor modal={true}>
-              <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
-                <PlusIcon className="w-5 h-5" />
-              </button>
-            </CardEditor>
-            <ProfileMenu />
-          </div>
-        </NavigationMenu.Root>
-      </Dialog.Content>
-    </Dialog.Root>
-  )
-}
-
 const menuLinkStyle =
-  'flex items-center gap-1 py-2 px-3 rounded-full leading-none text-white/40 hover:text-white/90 bg-transparent transition-colors'
+  'w-full flex items-center gap-1 md:py-2 md:px-3 md:rounded-full leading-none md:text-white/40 hover:bg-white/5 h-12 border-b border-white/10 md:hover:text-white/90 bg-transparent transition-colors'
 
 function MenuLink({ href, ...props }: { href: string; [x: string]: any }) {
   const router = useRouter()
@@ -211,7 +132,7 @@ function StudyMenu() {
         className="md:absolute top-[40px] left-0 w-full"
         onPointerLeave={preventHover}
       >
-        <ul className="w-full md:w-[250px] flex flex-col rounded-lg shadow-white bg-[#303136] p-2 text-sm">
+        <ul className="w-full md:w-[250px] flex flex-col md:rounded-lg md:shadow-white md:bg-[#303136] md:p-2 md:text-sm">
           {[
             {
               href: '/study/today',
@@ -230,14 +151,14 @@ function StudyMenu() {
               <NavigationMenu.Link asChild>
                 <Link
                   href={href}
-                  className="flex flex-col p-3 rounded-lg hover:bg-white/5"
+                  className="flex md:flex-col items-center md:p-3 h-12 md:rounded-lg hover:bg-white/5"
                 >
-                  <div className="flex items-center gap-2 font-bold">
+                  <div className="flex items-center gap-2 md:font-bold">
                     <Icon />
                     {''}
                     {title}
                   </div>
-                  <div className="text-white/50">{description}</div>
+                  <div className="text-white/50 hidden">{description}</div>
                 </Link>
               </NavigationMenu.Link>
             </NavigationMenu.Item>
@@ -276,7 +197,7 @@ function Navbar() {
   // )
 
   return (
-    <div
+    <header
       className={clsx(
         'fixed top-0 z-40 flex justify-center w-full max-w-full min-h-[64px] transition-shadow',
         scrollPosition > 0
@@ -284,42 +205,58 @@ function Navbar() {
           : 'bg-transparent'
       )}
     >
-      {/* <header className="max-w-7xl w-full px-6 mx-auto flex items-center"> */}
       {/* Menu */}
-      <NavigationMenu.Root className="max-w-7xl w-full px-6 mx-auto flex items-center">
+      <Collapsible.Root className="max-w-7xl w-full px-6 mx-auto flex flex-col md:flex-row items-center">
         {/* Logo */}
-        <div className="flex-1 justify-start">
+        <div
+          className={clsx(
+            'flex-1 flex items-center justify-between w-full',
+            'md:justify-start'
+          )}
+        >
           <a href={site.url} rel="home" className="text-lg font-bold">
             こと
           </a>
+          <Collapsible.Trigger className="flex flex-col items-center justify-center w-6 h-10 md:hidden before:contents-[''] before:-translate-y-1 before:h-[1px] before:w-[22px] before:bg-white after:contents-[''] after:translate-y-1 after:h-[1px] after:w-[22px] after:bg-white data-[state=open]:before:translate-y-[1px] data-[state=open]:before:rotate-45 data-[state=open]:after:-rotate-45 data-[state=open]:after:translate-y-0 before:transition-transform after:transition-transform" />
         </div>
 
         {/* Navigation */}
+        <Collapsible.Content asChild>
+          <NavigationMenu.Root className="bg-[#202124] md:bg-transparent max-w-screen fixed md:relative inset-0 top-[64px] flex flex-col px-6 pb-6">
+            <div className="order-2 md:order-1">
+              <NavigationMenu.List
+                className={clsx(
+                  'w-full flex flex-col md:flex-row items-center md:justify-center md:gap-2 list-none'
+                )}
+              >
+                <MenuLink href="/dictionary">Dictionary</MenuLink>
+                <MenuLink href="/sets">Your Library</MenuLink>
+                <StudyMenu />
+              </NavigationMenu.List>
+            </div>
 
-        <NavigationMenu.List className="hidden md:flex items-center justify-center gap-2 list-none">
-          <MenuLink href="/dictionary">Dictionary</MenuLink>
-          <MenuLink href="/sets">Your Library</MenuLink>
-          <StudyMenu />
-        </NavigationMenu.List>
+            {/* Profile */}
+            <div className="md:flex-1">
+              <NavigationMenu.Sub defaultValue="sub1">
+                <NavigationMenu.List className="flex flex-col flex-1 ml-auto items-center justify-end gap-3 list-none">
+                  <CardEditor modal={true}>
+                    <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
+                      <PlusIcon className="w-5 h-5" />
+                    </button>
+                  </CardEditor>
 
-        {/* Profile */}
-        <div className="flex-1">
-          <NavigationMenu.List className="hidden md:flex flex-1 ml-auto items-center justify-end gap-3 list-none">
-            <CardEditor modal={true}>
-              <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
-                <PlusIcon className="w-5 h-5" />
-              </button>
-            </CardEditor>
-            <ProfileMenu />
-          </NavigationMenu.List>
-        </div>
+                  {/* <div>Add New words</div> */}
+                  <ProfileMenu />
+                </NavigationMenu.List>
+              </NavigationMenu.Sub>
+            </div>
 
-        {/* Sidebar */}
-        <Sidebar />
-      </NavigationMenu.Root>
-
-      {/* </header> */}
-    </div>
+            {/* Space */}
+            <span aria-hidden={true} className="my-6 select-none"></span>
+          </NavigationMenu.Root>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </header>
   )
 }
 
