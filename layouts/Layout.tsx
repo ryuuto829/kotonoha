@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Avatar from '@radix-ui/react-avatar'
@@ -15,6 +15,7 @@ import site from '../utils/site'
 import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import { useScrollPosition } from '../utils/useScrollPosition'
 import * as Collapsible from '@radix-ui/react-collapsible'
+import { useWindowSize } from '../utils/useWindowSize'
 
 function ProfileMenu() {
   return (
@@ -171,7 +172,6 @@ function StudyMenu() {
 
 function Navbar() {
   // const db = useRxDB<AppDatabase>()
-  const scrollPosition = useScrollPosition()
 
   // const countNew = useRxQuery(
   //   db.cards.find({
@@ -196,67 +196,119 @@ function Navbar() {
   //   })
   // )
 
+  const windowSize = useWindowSize()
+  const scrollPosition = useScrollPosition()
+  const [open, setOpen] = useState(false)
+  const [initialScrollPosition, setInitialScrollPosition] = useState(0)
+
+  const openDialog = (open: boolean) => {
+    /**
+     * 1. Hide scrollbar and disable interaction with outside elements
+     * 2. Prevent jumping to the top caused by the `position: fixed`
+     */
+    if (open) {
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      setInitialScrollPosition(scrollPosition)
+    } else {
+      document.body.style.position = ''
+      document.body.style.width = ''
+      window.scrollTo(0, initialScrollPosition)
+    }
+
+    setOpen(open)
+  }
+
+  /**
+   * Close mobile menu on larger screen
+   */
+  if (windowSize.width > 768 && open) {
+    openDialog(false)
+  }
+
   return (
-    <header
+    <div
       className={clsx(
-        'fixed top-0 z-40 flex justify-center w-full max-w-full min-h-[64px] transition-shadow',
-        scrollPosition > 0
-          ? 'bg-[#202124]/50 shadow-[hsla(0,0%,100%,0.1)_0px_-1px_0px_inset] before:contents-[""] before:absolute before:-z-10 before:w-full before:h-full before:backdrop-blur-sm before:backdrop-saturate-150 before:top-[-1px] before:[backface-visibility:hidden]'
-          : 'bg-transparent'
+        'fixed top-0 z-50 flex justify-center w-full max-w-full min-h-[var(--header-height)] transition-shadow',
+        !open && [
+          scrollPosition > 0
+            ? [
+                'bg-[#202124]/50 shadow-[hsla(0,0%,100%,0.1)_0px_-1px_0px_inset]',
+                'before:contents-[""] before:absolute before:-z-50 before:w-full before:h-full before:backdrop-blur-sm before:backdrop-saturate-150 before:top-[-1px] before:[backface-visibility:hidden]'
+              ]
+            : 'bg-transparent'
+        ]
       )}
     >
-      {/* Menu */}
-      <Collapsible.Root className="max-w-7xl w-full px-6 mx-auto flex flex-col md:flex-row items-center">
-        {/* Logo */}
+      <header
+        className={clsx(
+          'w-full max-w-7xl px-6 mx-auto flex items-center',
+          open ? 'flex-col' : 'flex-row'
+        )}
+      >
         <div
           className={clsx(
             'flex-1 flex items-center justify-between w-full',
             'md:justify-start'
           )}
         >
+          {/* Logo */}
           <a href={site.url} rel="home" className="text-lg font-bold">
             こと
           </a>
-          <Collapsible.Trigger className="flex flex-col items-center justify-center w-6 h-10 md:hidden before:contents-[''] before:-translate-y-1 before:h-[1px] before:w-[22px] before:bg-white after:contents-[''] after:translate-y-1 after:h-[1px] after:w-[22px] after:bg-white data-[state=open]:before:translate-y-[1px] data-[state=open]:before:rotate-45 data-[state=open]:after:-rotate-45 data-[state=open]:after:translate-y-0 before:transition-transform after:transition-transform" />
+
+          {/* HORIZONTAL NAVIGATION HERE */}
+          <div className="hidden md:flex">Nav</div>
+
+          {/* MOBILE NAVIGATION */}
+          <Collapsible.Root
+            open={open}
+            onOpenChange={openDialog}
+            disabled={windowSize.width > 768}
+            className="md:hidden"
+          >
+            <Collapsible.Trigger className="flex flex-col items-center justify-center w-6 h-10 before:contents-[''] before:-translate-y-1 before:h-[1px] before:w-[22px] before:bg-white after:contents-[''] after:translate-y-1 after:h-[1px] after:w-[22px] after:bg-white data-[state=open]:before:translate-y-[1px] data-[state=open]:before:rotate-45 data-[state=open]:after:-rotate-45 data-[state=open]:after:translate-y-0 before:transition-transform after:transition-transform" />
+
+            {/* Navigation */}
+            <Collapsible.Content asChild>
+              <NavigationMenu.Root className="bg-[#202124] md:bg-transparent overflow-y-auto max-w-screen z-50 fixed md:relative inset-0 top-[64px] flex flex-col px-6 pb-6">
+                <div className="order-2 md:order-1">
+                  <NavigationMenu.List
+                    className={clsx(
+                      'w-full flex flex-col md:flex-row items-center md:justify-center md:gap-2 list-none'
+                    )}
+                  >
+                    <MenuLink href="/dictionary">Dictionary</MenuLink>
+                    <MenuLink href="/sets">Your Library</MenuLink>
+                    <StudyMenu />
+                  </NavigationMenu.List>
+                </div>
+
+                {/* Profile Menu */}
+                <div className="md:flex-1">
+                  <NavigationMenu.Sub defaultValue="sub1">
+                    <NavigationMenu.List className="flex flex-col flex-1 ml-auto items-center justify-end gap-3 list-none">
+                      <CardEditor modal={true}>
+                        <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
+                          <PlusIcon className="w-5 h-5" />
+                        </button>
+                      </CardEditor>
+                      <ProfileMenu />
+                    </NavigationMenu.List>
+                  </NavigationMenu.Sub>
+                </div>
+
+                {/* Space */}
+                <span
+                  aria-hidden={true}
+                  className="my-6 select-none md:hidden"
+                ></span>
+              </NavigationMenu.Root>
+            </Collapsible.Content>
+          </Collapsible.Root>
         </div>
-
-        {/* Navigation */}
-        <Collapsible.Content asChild>
-          <NavigationMenu.Root className="bg-[#202124] md:bg-transparent max-w-screen fixed md:relative inset-0 top-[64px] flex flex-col px-6 pb-6">
-            <div className="order-2 md:order-1">
-              <NavigationMenu.List
-                className={clsx(
-                  'w-full flex flex-col md:flex-row items-center md:justify-center md:gap-2 list-none'
-                )}
-              >
-                <MenuLink href="/dictionary">Dictionary</MenuLink>
-                <MenuLink href="/sets">Your Library</MenuLink>
-                <StudyMenu />
-              </NavigationMenu.List>
-            </div>
-
-            {/* Profile */}
-            <div className="md:flex-1">
-              <NavigationMenu.Sub defaultValue="sub1">
-                <NavigationMenu.List className="flex flex-col flex-1 ml-auto items-center justify-end gap-3 list-none">
-                  <CardEditor modal={true}>
-                    <button className="h-8 w-8 inline-flex items-center justify-center rounded hover:bg-white/5 transition-colors">
-                      <PlusIcon className="w-5 h-5" />
-                    </button>
-                  </CardEditor>
-
-                  {/* <div>Add New words</div> */}
-                  <ProfileMenu />
-                </NavigationMenu.List>
-              </NavigationMenu.Sub>
-            </div>
-
-            {/* Space */}
-            <span aria-hidden={true} className="my-6 select-none"></span>
-          </NavigationMenu.Root>
-        </Collapsible.Content>
-      </Collapsible.Root>
-    </header>
+      </header>
+    </div>
   )
 }
 
