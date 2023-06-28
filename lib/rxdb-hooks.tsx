@@ -46,7 +46,9 @@ export function useRxQuery<T>(query: RxQuery | undefined) {
   const [isFetching, setIsFetching] = useState(true)
 
   useEffect(() => {
-    const sub = (query?.$.subscribe as any)((docs: RxDocument<T>) => {
+    if (!query) return
+
+    const sub = (query.$.subscribe as any)((docs?: RxDocument<T>) => {
       if (!docs) return
 
       /**

@@ -111,7 +111,8 @@ export default function Sets() {
         <SortMenu sort={sort} changeSort={setSort} />
       </div>
       <div className="flex flex-col gap-3">
-        {sort !== 'name' &&
+        {decks &&
+          sort !== 'name' &&
           ['today', 'this week', 'this month', 'this year', 'over 1 year'].map(
             (title) => {
               if (!group[title] || group[title].length === 0) return null
