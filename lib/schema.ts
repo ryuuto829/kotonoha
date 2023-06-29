@@ -156,3 +156,42 @@ export const progressSchema = {
   },
   required: ['name']
 } as const
+
+/**
+ *
+ *
+ *
+ *
+ *
+ */
+
+export const userSchema = {
+  title: 'User schema',
+  description: 'User schema',
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: {
+      type: 'string',
+      maxLength: 100
+    },
+    words: {
+      type: 'array',
+      uniqueItems: true,
+      items: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            maxLength: 100
+          },
+          meaning: {
+            type: 'string'
+          }
+        }
+      }
+    }
+  },
+  required: ['id']
+} as const
