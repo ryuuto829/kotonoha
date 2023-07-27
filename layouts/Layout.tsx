@@ -1,11 +1,14 @@
 import { ReactNode } from 'react'
 import Navigation from '../components/navigation'
+import { Inter } from 'next/font/google'
+import clsx from 'clsx'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <section className="min-h-screen relative">
+    <section className={clsx('min-h-screen relative', inter.className)}>
       <Navigation />
-
       <main
         aria-label="Main content"
         tabIndex={-1}

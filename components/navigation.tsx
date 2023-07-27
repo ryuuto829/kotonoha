@@ -7,28 +7,30 @@ import * as NavigationMenu from '@radix-ui/react-navigation-menu'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import {
   ChevronDownIcon,
-  CounterClockwiseClockIcon
+  CounterClockwiseClockIcon,
+  DrawingPinIcon,
+  UploadIcon
 } from '@radix-ui/react-icons'
 
 import { useScrollPosition } from '../utils/useScrollPosition'
 import { useWindowSize } from '../utils/useWindowSize'
 import site from '../utils/site'
 import ImportVocabulary from '../components/importVocabulary'
-import { useRxCollection } from 'rxdb-hooks'
+// import { useRxCollection } from 'rxdb-hooks'
 
 const MOBILE_BREACKPOINT = 768
 
 const linkStyle =
-  'flex items-center gap-1 py-2 px-3 rounded-full leading-none text-white/40 hover:text-white/90 data-[active]:bg-slate-400/5 data-[active]:text-white/90 bg-transparent transition-colors'
+  'flex items-center gap-1 rounded-full leading-none text-[--color-text-dark] hover:text-[--color-text] data-[active]:bg-slate-400/10 data-[active]:text-[--color-text] bg-transparent transition-colors'
+
 const mobileLinkStyle =
   'w-full flex items-center gap-1 leading-none text-white/50 hover:bg-white/5 h-12 border-b border-white/10 bg-transparent transition-colors'
+
 const menuTriggerStyle = clsx(
   'flex flex-col items-center justify-center w-6 h-10',
   "before:contents-[''] before:-translate-y-1 before:h-[1px] before:w-[22px] before:bg-white data-[state=open]:before:translate-y-[1px] data-[state=open]:before:rotate-45 before:transition-transform",
   "after:contents-[''] after:translate-y-1 after:h-[1px] after:w-[22px] after:bg-white data-[state=open]:after:-rotate-45 data-[state=open]:after:translate-y-0 after:transition-transform"
 )
-const headerBorderStyle =
-  'before:contents-[""] before:absolute before:-z-50 before:w-full before:h-full before:backdrop-blur-sm before:backdrop-saturate-150 before:top-[-1px] before:[backface-visibility:hidden]'
 
 const siteLinks = [
   {
@@ -43,16 +45,16 @@ const siteLinks = [
 
 const studyMenuLinks = [
   {
-    href: '/study/today',
-    title: 'Due for today',
-    description: 'All words for SRS',
+    href: '/study/srs',
+    title: 'Due for Review (SRS)',
+    description: 'Review words from all collection',
     Icon: CounterClockwiseClockIcon
   },
   {
     href: '/study/new',
     title: 'New words',
     description: 'Review words added today',
-    Icon: CounterClockwiseClockIcon
+    Icon: DrawingPinIcon
   }
 ]
 
@@ -91,12 +93,12 @@ export const preventHover = (event: any) => {
 function MobileMenu({
   open,
   changeOpen,
-  openQuickAdd,
+  openImportDialog,
   windowWidth
 }: {
   open: boolean
   changeOpen: (open: boolean) => void
-  openQuickAdd: () => void
+  openImportDialog: () => void
   windowWidth: number
 }) {
   const router = useRouter()
@@ -121,14 +123,7 @@ function MobileMenu({
         >
           {/* PROFILE MENU */}
           <NavigationMenu.List>
-            <div
-              onClick={() => {
-                changeOpen(false)
-                openQuickAdd()
-              }}
-            >
-              Open
-            </div>
+            <button onClick={openImportDialog}>Import vocabulary</button>
 
             <p className="flex items-center h-20 border-b border-white/10">
               email@gmail.com
@@ -189,131 +184,145 @@ function MobileMenu({
 
 function Menu() {
   return (
-    <>
-      {/* Site Menu */}
-      <NavigationMenu.Root className="hidden md:flex bg-transparent">
-        <NavigationMenu.List className="flex items-center gap-2">
-          {siteLinks.map(({ href, title }) => (
-            <MenuLink key={href} href={href} className={linkStyle}>
-              {title}
-            </MenuLink>
-          ))}
+    <NavigationMenu.Root>
+      <NavigationMenu.List className="flex items-center gap-2">
+        {/* Main links */}
+        {siteLinks.map(({ href, title }) => (
+          <MenuLink
+            key={href}
+            href={href}
+            className={clsx(linkStyle, 'py-2 px-3')}
+          >
+            {title}
+          </MenuLink>
+        ))}
 
-          {/* Study Menu */}
-          <NavigationMenu.Item className="relative">
-            <NavigationMenu.Trigger
-              className={clsx(
-                linkStyle,
-                'group data-[state=open]:text-white/90'
-              )}
-            >
-              Study
-              <ChevronDownIcon
-                aria-hidden
-                className="group-data-[state=open]:-rotate-180 transition-transform"
-              />
-            </NavigationMenu.Trigger>
-            <NavigationMenu.Content className="absolute top-[40px] left-0">
-              <ul className="w-[250px] flex flex-col rounded-lg shadow-white bg-[#303136] p-2 text-sm">
-                {studyMenuLinks.map(({ href, title, description, Icon }) => (
+        {/* Study links */}
+        <NavigationMenu.Item className="relative">
+          <NavigationMenu.Trigger
+            className={clsx(linkStyle, 'group py-2 px-3')}
+          >
+            Study
+            <ChevronDownIcon
+              aria-hidden
+              className="group-data-[state=open]:-rotate-180 transition-transform"
+            />
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content className="absolute top-[40px]">
+            <NavigationMenu.List className="w-[360px] flex flex-col rounded-lg shadow-black/20 bg-[--color-base-light] py-2">
+              {studyMenuLinks.map(({ href, title, description, Icon }) => (
+                <MenuLink
+                  key={href}
+                  href={href}
+                  className="flex items-center space-x-4 py-2 px-4 hover:bg-white/5"
+                >
+                  <Icon className="w-6 h-6" />
+                  <div className="flex flex-col gap-1">
+                    <p>{title}</p>
+                    <p className="text-[--color-text-dark] text-xs">
+                      {description}
+                    </p>
+                  </div>
+                </MenuLink>
+              ))}
+            </NavigationMenu.List>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+    </NavigationMenu.Root>
+  )
+}
+
+function ProfileMenu({ openImportDialog }: { openImportDialog: () => void }) {
+  const preventPointerEvents = (event: any) => {
+    const e = event as Event
+    e.preventDefault()
+  }
+
+  return (
+    <NavigationMenu.Root className="ml-auto flex items-center gap-4">
+      <button
+        onClick={openImportDialog}
+        className="w-10 h-10 flex items-center justify-center hover:bg-[--color-button-light] rounded-full"
+      >
+        <UploadIcon className="w-5 h-5" />
+      </button>
+      <NavigationMenu.List>
+        <NavigationMenu.Item>
+          <NavigationMenu.Trigger
+            onPointerMove={preventPointerEvents}
+            onPointerLeave={preventPointerEvents}
+            className={clsx(linkStyle, 'group bg-slate-400/10 rounded-full')}
+          >
+            <Avatar.Root className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-600 cursor-pointer">
+              <Avatar.Fallback className="font-medium text-gray-300">
+                DM
+              </Avatar.Fallback>
+            </Avatar.Root>
+            <ChevronDownIcon className="mr-2" />
+          </NavigationMenu.Trigger>
+          <NavigationMenu.Content
+            className="absolute top-[45px] left-full -translate-x-full w-[250px] bg-[--color-base-light] shadow-black/20 rounded-lg py-2 flex flex-col"
+            onPointerLeave={preventPointerEvents}
+          >
+            <p className="flex items-center leading-5 px-5 py-2 text-[--color-text-dark]">
+              email@gmail.com
+            </p>
+            <NavigationMenu.List>
+              {profileMenuLinks.map(({ href, title, hasSpace }) => (
+                <Fragment key={href}>
+                  {hasSpace && (
+                    <div className="border-t border-white/10 mx-5 my-3"></div>
+                  )}
                   <MenuLink
-                    key={href}
                     href={href}
-                    className="flex flex-col p-3 rounded-lg hover:bg-white/5"
+                    className={clsx(
+                      'flex items-center leading-6 hover:bg-white/5',
+                      'py-2 px-5'
+                    )}
                   >
-                    <div className="flex items-center gap-2 font-bold">
-                      <Icon />
-                      {title}
-                    </div>
-                    <div className="text-white/50">{description}</div>
+                    {title}
                   </MenuLink>
-                ))}
-              </ul>
-            </NavigationMenu.Content>
-          </NavigationMenu.Item>
-        </NavigationMenu.List>
-      </NavigationMenu.Root>
-
-      {/* Profile Menu */}
-      <div className="flex-1 hidden md:flex">
-        <NavigationMenu.Root className="ml-auto flex items-center gap-2">
-          {/* <QuickAdd /> */}
-
-          <NavigationMenu.List>
-            <NavigationMenu.Item>
-              <NavigationMenu.Trigger
-                onPointerMove={(e) => e.preventDefault()}
-                onPointerLeave={(e) => e.preventDefault()}
-                className={clsx(
-                  linkStyle,
-                  'group data-[state=open]:text-white/90'
-                )}
-              >
-                <Avatar.Root className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-600 border-2 border-transparent hover:border-[#9da2ff] data-[state=open]:border-[#9da2ff] transition-colors cursor-pointer">
-                  <Avatar.Fallback className="font-medium text-gray-300">
-                    DM
-                  </Avatar.Fallback>
-                </Avatar.Root>
-              </NavigationMenu.Trigger>
-              <NavigationMenu.Content
-                className="absolute top-full left-full -translate-x-full w-[250px] bg-[#303136] shadow-white rounded-lg py-2 text-sm flex flex-col"
-                onPointerLeave={(e) => e.preventDefault()}
-              >
-                <p className="flex items-center leading-5 px-5 py-2 text-white/40">
-                  email@gmail.com
-                </p>
-                <NavigationMenu.List>
-                  {profileMenuLinks.map(({ href, title, hasSpace }) => (
-                    <Fragment key={href}>
-                      {hasSpace && (
-                        <div className="border-t border-white/10 mx-5 my-3"></div>
-                      )}
-                      <MenuLink
-                        href={href}
-                        className={clsx(
-                          'flex items-center leading-5 hover:bg-white/5',
-                          'py-2 px-5'
-                        )}
-                      >
-                        {title}
-                      </MenuLink>
-                    </Fragment>
-                  ))}
-                </NavigationMenu.List>
-              </NavigationMenu.Content>
-            </NavigationMenu.Item>
-          </NavigationMenu.List>
-        </NavigationMenu.Root>
-      </div>
-    </>
+                </Fragment>
+              ))}
+            </NavigationMenu.List>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+      </NavigationMenu.List>
+    </NavigationMenu.Root>
   )
 }
 
 export default function Navigation() {
   const windowSize = useWindowSize()
   const scrollPosition = useScrollPosition()
-  const collection = useRxCollection('cards')
+  // const collection = useRxCollection('cards')
 
+  const [initialScrollPosition, setInitialScrollPosition] = useState(0)
   const [openMobileMenu, setOpenMobileMenu] = useState(false)
   const [openQuickAdd, setOpenQuickAdd] = useState(false)
-  const [initialScrollPosition, setInitialScrollPosition] = useState(0)
   const [importContent, setImportContent] = useState('<p>Hello World! 🌎️</p>')
 
   const addVocabulary = async () => {
-    const user = await collection?.insert({
-      id: '123',
-      word: '',
-      meaning: '',
-      createdAt: '',
-      updatedAt: '',
-      lastReviewed: '',
-      lastReviewedCorrect: '',
-      srsDueDate: '',
-      status: 1,
-      statusChangedDate: '',
-      previousStatus: 1,
-      deckId: ''
-    })
+    // const user = await collection?.insert({
+    //   id: '123',
+    //   word: '',
+    //   meaning: '',
+    //   createdAt: '',
+    //   updatedAt: '',
+    //   lastReviewed: '',
+    //   lastReviewedCorrect: '',
+    //   srsDueDate: '',
+    //   status: 1,
+    //   statusChangedDate: '',
+    //   previousStatus: 1,
+    //   deckId: ''
+    // })
+  }
+
+  const openImportDialog = () => {
+    openMobileMenu && setOpenMobileMenu(false)
+    setOpenQuickAdd(true)
   }
 
   /**
@@ -342,30 +351,22 @@ export default function Navigation() {
   }
 
   return (
-    <div
-      className={clsx(
-        'fixed top-0 z-50 flex justify-center w-full max-w-full min-h-[var(--header-height)] transition-shadow',
-        !open &&
-          scrollPosition > 0 && [
-            'bg-[#202124]/50 shadow-[hsla(0,0%,100%,0.1)_0px_-1px_0px_inset]',
-            headerBorderStyle
-          ],
-        !open && scrollPosition === 0 && 'bg-transparent'
-      )}
-    >
-      <header
-        className={clsx(
-          'w-full max-w-7xl px-6 mx-auto flex items-center justify-between'
-        )}
-      >
-        <a href={site.url} rel="home" className="md:flex-1 text-lg font-bold">
-          こと
+    <div className="fixed top-0 z-50 flex justify-center w-full min-h-[--header-height] bg-[--color-base]">
+      <header className="w-full max-w-7xl px-6 mx-auto flex items-center justify-between text-sm font-semibold text-[--color-text]">
+        <a href={site.url} rel="home" className="tracking-[0.3em] uppercase">
+          Kotoのha
         </a>
-        <Menu />
+        <hr className="hidden md:flex h-7 mx-4 border-l border-white/20" />
+        <div className="flex-1 hidden md:flex">
+          <Menu />
+        </div>
+        <div className="hidden md:flex">
+          <ProfileMenu openImportDialog={openImportDialog} />
+        </div>
         <MobileMenu
           open={openMobileMenu}
           changeOpen={toggleMobileMenu}
-          openQuickAdd={() => setOpenQuickAdd(true)}
+          openImportDialog={openImportDialog}
           windowWidth={windowSize.width}
         />
         <ImportVocabulary

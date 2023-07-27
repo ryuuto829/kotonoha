@@ -10,14 +10,13 @@
 }
 
 :root {
-  /*
-  --app-background-color: rgb(25, 25, 25);
-  --app-menu-color: rgb(32, 32, 32);
-
-  --sidebar-width: 240px;
-  --navbar-heigth: 64px;
-*/
   --header-height: 64px;
+  --color-base: #142739;
+  --color-base-dark: #0c1b2b;
+  --color-base-light: #2c3c4d;
+  --color-text-dark: #adb7bf;
+  --color-text: #f9fafb;
+  --color-button-light: #5a6774;
 }
 
 * {
@@ -34,7 +33,7 @@ body {
 
 body {
   color: rgb(255, 255, 255, 0.8);
-  background: #202124;
+  background: var(--color-base-dark);
 }
 
 a {
