@@ -21,7 +21,7 @@ import ImportVocabulary from '../components/importVocabulary'
 const MOBILE_BREACKPOINT = 768
 
 const linkStyle =
-  'flex items-center gap-1 rounded-full leading-none text-[--color-text-dark] hover:text-[--color-text] data-[active]:bg-slate-400/10 data-[active]:text-[--color-text] bg-transparent transition-colors'
+  'flex items-center gap-1 rounded-full leading-none text-[--color-text-dark] hover:text-[--color-text] data-[active]:bg-slate-400/10 data-[active]:text-[--color-text] transition-colors'
 
 const mobileLinkStyle =
   'w-full flex items-center gap-1 leading-none text-white/50 hover:bg-white/5 h-12 border-b border-white/10 bg-transparent transition-colors'
@@ -113,22 +113,24 @@ function MobileMenu({
       open={open}
       onOpenChange={changeOpen}
       disabled={windowWidth > MOBILE_BREACKPOINT}
-      className="md:hidden"
     >
       <Collapsible.Trigger className={menuTriggerStyle} />
       <Collapsible.Content asChild>
         <NavigationMenu.Root
           orientation="vertical"
-          className="bg-[#202124] text-white/40 overflow-y-auto max-w-screen z-50 fixed inset-0 top-[var(--header-height)] flex flex-col px-6 pb-6"
+          className="bg-[--color-base] text-[--color-text-dark] overflow-y-auto max-w-screen z-50 fixed inset-0 top-[var(--header-height)] flex flex-col p-6"
         >
           {/* PROFILE MENU */}
           <NavigationMenu.List>
-            <button onClick={openImportDialog}>Import vocabulary</button>
-
+            <button
+              onClick={openImportDialog}
+              className="flex items-center justify-center w-full h-10 bg-[--color-primary] rounded-full text-[--color-text-contrast]"
+            >
+              Import vocabulary
+            </button>
             <p className="flex items-center h-20 border-b border-white/10">
               email@gmail.com
             </p>
-
             {profileMenuLinks.map(({ href, title }) => (
               <MenuLink key={href} href={href} className={mobileLinkStyle}>
                 {title}
@@ -302,6 +304,7 @@ export default function Navigation() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false)
   const [openQuickAdd, setOpenQuickAdd] = useState(false)
   const [importContent, setImportContent] = useState('<p>Hello World! 🌎️</p>')
+  const [deck, setDeck] = useState('1')
 
   const addVocabulary = async () => {
     // const user = await collection?.insert({
@@ -363,16 +366,23 @@ export default function Navigation() {
         <div className="hidden md:flex">
           <ProfileMenu openImportDialog={openImportDialog} />
         </div>
-        <MobileMenu
-          open={openMobileMenu}
-          changeOpen={toggleMobileMenu}
-          openImportDialog={openImportDialog}
-          windowWidth={windowSize.width}
-        />
+        <div className="md:hidden">
+          <MobileMenu
+            open={openMobileMenu}
+            changeOpen={toggleMobileMenu}
+            openImportDialog={openImportDialog}
+            windowWidth={windowSize.width}
+          />
+        </div>
         <ImportVocabulary
           open={openQuickAdd}
-          changeOpen={setOpenQuickAdd}
+          changeOpen={() => {
+            setOpenQuickAdd(!openQuickAdd)
+            setImportContent('')
+          }}
           content={importContent}
+          deck={deck}
+          changeDeck={setDeck}
           changeContent={setImportContent}
           saveContent={addVocabulary}
         />

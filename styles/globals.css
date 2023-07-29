@@ -14,8 +14,10 @@
   --color-base: #142739;
   --color-base-dark: #0c1b2b;
   --color-base-light: #2c3c4d;
+  --color-primary: #32cbcb;
   --color-text-dark: #adb7bf;
   --color-text: #f9fafb;
+  --color-text-contrast: #142739;
   --color-button-light: #5a6774;
 }
 
