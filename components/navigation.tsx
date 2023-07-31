@@ -16,7 +16,8 @@ import { useScrollPosition } from '../utils/useScrollPosition'
 import { useWindowSize } from '../utils/useWindowSize'
 import site from '../utils/site'
 import ImportVocabulary from '../components/importVocabulary'
-// import { useRxCollection } from 'rxdb-hooks'
+import { useRxCollection } from 'rxdb-hooks'
+import { useUser } from '@supabase/auth-helpers-react'
 
 const MOBILE_BREACKPOINT = 768
 
@@ -67,7 +68,7 @@ const profileMenuLinks = [
     href: '/settings',
     title: 'Settings'
   },
-  { href: '/login', title: 'Log in', hasSpace: true }
+  { href: '/sign-up', title: 'Log in', hasSpace: true }
 ]
 
 function MenuLink({ href, ...props }: { href: string; [x: string]: any }) {
@@ -298,7 +299,7 @@ function ProfileMenu({ openImportDialog }: { openImportDialog: () => void }) {
 export default function Navigation() {
   const windowSize = useWindowSize()
   const scrollPosition = useScrollPosition()
-  // const collection = useRxCollection('cards')
+  const collection = useRxCollection('new')
 
   const [initialScrollPosition, setInitialScrollPosition] = useState(0)
   const [openMobileMenu, setOpenMobileMenu] = useState(false)
@@ -306,21 +307,19 @@ export default function Navigation() {
   const [importContent, setImportContent] = useState('<p>Hello World! 🌎️</p>')
   const [deck, setDeck] = useState('1')
 
+  const uid = useUser()?.id
+
   const addVocabulary = async () => {
-    // const user = await collection?.insert({
-    //   id: '123',
-    //   word: '',
-    //   meaning: '',
-    //   createdAt: '',
-    //   updatedAt: '',
-    //   lastReviewed: '',
-    //   lastReviewedCorrect: '',
-    //   srsDueDate: '',
-    //   status: 1,
-    //   statusChangedDate: '',
-    //   previousStatus: 1,
-    //   deckId: ''
-    // })
+    const user = await collection?.insert({
+      id: '123' + Date.now(),
+      meaning: 'hey',
+      user_id: uid || null
+    })
+
+    await collection
+      ?.find()
+      .exec()
+      .then((doc) => console.log(doc))
   }
 
   const openImportDialog = () => {

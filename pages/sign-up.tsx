@@ -14,11 +14,16 @@ export default function SignUpPage() {
       email: 'example@email.com',
       password: '71fas8897dsf73'
     })
-    // router.reload()
+    // await supabaseClient.auth.signInWithPassword({
+    //   email: 'example1@email.com',
+    //   password: '71fas8897dsf731'
+    // })
+    router.reload()
   }
 
   const signOut = async () => {
     const { error } = await supabaseClient.auth.signOut()
+    router.reload()
   }
 
   useEffect(() => {
@@ -26,7 +31,7 @@ export default function SignUpPage() {
       ?.find()
       .exec()
       .then((docs) => console.log(docs))
-  }, [user])
+  }, [db])
 
   return (
     <main className="flex flex-col justify-center h-full">

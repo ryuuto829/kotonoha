@@ -5,10 +5,15 @@ import type { AppProps } from 'next/app'
 import type { RxDatabase } from 'rxdb'
 import type { NextPageWithLayout } from '../lib/types'
 
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
+import { SessionContextProvider } from '@supabase/auth-helpers-react'
+import { SupabaseReplication } from 'rxdb-supabase'
+
 import '../styles/globals.css'
 import Layout from '../layouts/Layout'
 import { get } from '../lib/database'
 import { RxDBProvider } from '../lib/rxdb-hooks'
+import startReplication from '../lib/replication'
 
 export default function App({
   Component,
@@ -18,11 +23,36 @@ export default function App({
 }) {
   const [queryClient] = useState(() => new QueryClient())
   const [db, setDb] = useState<RxDatabase<any>>()
+  const [supabaseClient] = useState(() =>
+    createPagesBrowserClient({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    })
+  )
+
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    // RxDB instantiation can be asynchronous
-    get().then(setDb)
+    const initDatabase = async () => {
+      const { data } = await supabaseClient.auth.getSession()
+      const uid = data?.session?.user?.id || null
+
+      const db = await get(uid)
+
+      setDb(db)
+      setUser(uid)
+
+      console.log('[Client] Initializing database...')
+    }
+
+    initDatabase()
   }, [])
+
+  useEffect(() => {
+    if (user && db?.name.includes(user)) {
+      startReplication(db.new, supabaseClient)
+    }
+  }, [db, user, supabaseClient])
 
   /**
    * Persistent 'Per-Page' Layout in Next.js
@@ -35,16 +65,21 @@ export default function App({
   }
 
   return (
-    <RxDBProvider db={db}>
-      <Provider db={db}>
-        <Layout>
-          {getLayout(
-            <QueryClientProvider client={queryClient}>
-              <Component {...pageProps} />
-            </QueryClientProvider>
-          )}
-        </Layout>
-      </Provider>
-    </RxDBProvider>
+    <SessionContextProvider
+      supabaseClient={supabaseClient}
+      initialSession={pageProps.initialSession}
+    >
+      <RxDBProvider db={db}>
+        <Provider db={db}>
+          <Layout>
+            {getLayout(
+              <QueryClientProvider client={queryClient}>
+                <Component {...pageProps} />
+              </QueryClientProvider>
+            )}
+          </Layout>
+        </Provider>
+      </RxDBProvider>
+    </SessionContextProvider>
   )
 }

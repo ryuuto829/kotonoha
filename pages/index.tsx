@@ -26,7 +26,7 @@ export default function Home() {
         onClick={async () => {
           console.log('click')
 
-          // await collection?.insert({ id: '1' })
+          await collection?.insert({ id: '1' })
 
           const doc = await collection?.findOne('1').exec()
 
@@ -54,6 +54,7 @@ export default function Home() {
         Click
       </button>
       <div>Home page</div>
+      <div className="h-[200vh]"></div>
     </>
   )
 }

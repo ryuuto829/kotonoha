@@ -176,21 +176,11 @@ export const userSchema = {
       type: 'string',
       maxLength: 100
     },
-    words: {
-      type: 'array',
-      uniqueItems: true,
-      items: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            maxLength: 100
-          },
-          meaning: {
-            type: 'string'
-          }
-        }
-      }
+    meaning: {
+      type: 'string'
+    },
+    user_id: {
+      type: 'string'
     }
   },
   required: ['id']

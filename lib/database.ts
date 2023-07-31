@@ -1,9 +1,4 @@
-import {
-  createRxDatabase,
-  addRxPlugin,
-  RxDatabase,
-  removeRxDatabase
-} from 'rxdb'
+import { createRxDatabase, addRxPlugin, RxDatabase } from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
@@ -17,7 +12,7 @@ import {
   userSchema
 } from './schema'
 
-// removeRxDatabase('kotonoha-db', getRxStorageDexie())
+// removeRxDatabase('kotonoha', getRxStorageDexie())
 
 /**
  * Enable mango-query-syntax with chained methods
@@ -36,17 +31,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 let dbPromise: Promise<RxDatabase> | null = null
+let dbUserID: string | null = null
 
-export const create = async () => {
-  /**
-   * Create RxDB
-   */
+export const create = async (uid?: string) => {
   const db = await createRxDatabase({
-    name: 'kotonoha-db',
+    name: `kotonoha-${uid ? uid : 'default'}`,
     storage: getRxStorageDexie()
   })
-
-  console.log('DatabaseService: create database')
 
   /**
    * Add collections
@@ -69,47 +60,45 @@ export const create = async () => {
     }
   })
 
-  console.log('DatabaseService: create collections')
-
   // hooks
 
-  db.cards.postInsert(async (data, rxDocument) => {
-    const progressDoc = await db.progress
-      ?.findOne(data.updatedAt.split('T')[0])
-      .exec()
+  // db.cards.postInsert(async (data, rxDocument) => {
+  //   const progressDoc = await db.progress
+  //     ?.findOne(data.updatedAt.split('T')[0])
+  //     .exec()
 
-    if (!progressDoc) {
-      await db.progress?.insert({
-        name: data.updatedAt.split('T')[0]
-      })
-    }
+  //   if (!progressDoc) {
+  //     await db.progress?.insert({
+  //       name: data.updatedAt.split('T')[0]
+  //     })
+  //   }
 
-    await progressDoc.update({
-      $inc: {
-        cardsAdded: 1
-      }
-    })
-  }, false)
+  //   await progressDoc.update({
+  //     $inc: {
+  //       cardsAdded: 1
+  //     }
+  //   })
+  // }, false)
 
-  db.cards.postSave(async (data, rxDocument) => {
-    const progressDoc = await db.progress
-      ?.findOne(data.updatedAt.split('T')[0])
-      .exec()
+  // db.cards.postSave(async (data, rxDocument) => {
+  //   const progressDoc = await db.progress
+  //     ?.findOne(data.updatedAt.split('T')[0])
+  //     .exec()
 
-    if (!progressDoc) {
-      await db.progress?.insert({
-        name: data.updatedAt.split('T')[0]
-      })
-    }
+  //   if (!progressDoc) {
+  //     await db.progress?.insert({
+  //       name: data.updatedAt.split('T')[0]
+  //     })
+  //   }
 
-    await progressDoc.update({
-      $inc: {
-        cardsReviewed: rxDocument.lastReviewed !== data.lastReviewed ? 1 : 0,
-        cardsLearned:
-          rxDocument.status !== data.status && rxDocument.status < 4 ? 1 : 0
-      }
-    })
-  }, false)
+  //   await progressDoc.update({
+  //     $inc: {
+  //       cardsReviewed: rxDocument.lastReviewed !== data.lastReviewed ? 1 : 0,
+  //       cardsLearned:
+  //         rxDocument.status !== data.status && rxDocument.status < 4 ? 1 : 0
+  //     }
+  //   })
+  // }, false)
 
   db.decks.postRemove(async (data) => {
     const cards = await db.cards
@@ -131,9 +120,12 @@ export const create = async () => {
   return db
 }
 
-export const get = () => {
-  if (!dbPromise) {
-    dbPromise = create()
+export const get = (uid: string | null) => {
+  if (!dbPromise || dbUserID !== uid) {
+    dbPromise = create(uid)
+    dbUserID = uid || null
+
+    console.log(`[Database] Create database (user: ${uid})`)
   }
 
   return dbPromise
