@@ -31,6 +31,5 @@ export default async function startReplication(
     console.error(err)
   })
 
-  console.log('[Client] Start replication...')
   // }
 }
