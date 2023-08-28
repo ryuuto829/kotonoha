@@ -1,4 +1,9 @@
-import { createRxDatabase, addRxPlugin, RxDatabase } from 'rxdb'
+import {
+  createRxDatabase,
+  addRxPlugin,
+  RxDatabase,
+  removeRxDatabase
+} from 'rxdb'
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie'
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'

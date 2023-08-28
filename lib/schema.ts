@@ -1,6 +1,6 @@
 export const cardSchema = {
-  title: 'card schema',
-  description: 'card schema',
+  title: 'Card schema',
+  description: 'Card schema',
   version: 0,
   primaryKey: 'id',
   type: 'object',
@@ -9,63 +9,49 @@ export const cardSchema = {
       type: 'string',
       maxLength: 100
     },
-    word: {
+    term: {
       type: 'string'
     },
     meaning: {
       type: 'string'
     },
-    createdAt: {
+    created_at: {
       type: 'string',
       format: 'date-time'
     },
-    updatedAt: {
-      type: 'string',
-      format: 'date-time'
-    },
-    lastReviewed: {
-      type: 'string',
-      format: 'date-time'
-    },
-    lastReviewedCorrect: {
-      type: 'string',
-      format: 'date-time'
-    },
-    srsDueDate: {
-      type: 'string',
-      format: 'date-time'
-    },
-    status: {
-      type: 'number',
-      minimum: 1,
-      maximum: 5
-    },
-    statusChangedDate: {
-      type: 'string',
-      format: 'date-time'
-    },
-    previousStatus: {
-      type: 'number',
-      minimum: 1,
-      maximum: 5
-    },
-    deckId: {
+    deck_id: {
       type: 'string'
+    },
+    new: {
+      type: 'boolean'
+    },
+    user_id: {
+      type: 'string'
+    },
+    reviews: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          date: {
+            type: 'string',
+            format: 'date-time'
+          },
+          due: {
+            type: 'string',
+            format: 'date-time'
+          },
+          remembered: {
+            type: 'boolean'
+          },
+          interval: {
+            type: 'number'
+          }
+        }
+      }
     }
   },
-  required: [
-    'id',
-    'word',
-    'meaning',
-    'createdAt',
-    'updatedAt',
-    'lastReviewed',
-    'lastReviewedCorrect',
-    'srsDueDate',
-    'status',
-    'previousStatus',
-    'statusChangedDate'
-  ]
+  required: ['id', 'created_at']
 } as const
 
 export const profileSchema = {

@@ -11,7 +11,7 @@ const Editor = ({
   changeContent
 }: {
   content: string
-  changeContent: (x: string) => void
+  changeContent: (x: object) => void
 }) => {
   const editor = useEditor({
     extensions: [Document, Paragraph, Text],
@@ -23,9 +23,10 @@ const Editor = ({
       }
     },
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML()
+      // const html = editor.getHTML()
+      const json = editor.getJSON()
 
-      changeContent(html)
+      changeContent(json)
       // send the content to an API here
     }
   })

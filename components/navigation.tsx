@@ -11,6 +11,7 @@ import {
   DrawingPinIcon,
   UploadIcon
 } from '@radix-ui/react-icons'
+import { customAlphabet } from 'nanoid'
 
 import { useScrollPosition } from '../utils/useScrollPosition'
 import { useWindowSize } from '../utils/useWindowSize'
@@ -296,30 +297,61 @@ function ProfileMenu({ openImportDialog }: { openImportDialog: () => void }) {
   )
 }
 
+const alphabet =
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+const nanoid = customAlphabet(alphabet, 8) // nanoid() => "tXLPvMfc"
+
 export default function Navigation() {
   const windowSize = useWindowSize()
   const scrollPosition = useScrollPosition()
-  const collection = useRxCollection('new')
+  const cardsCollection = useRxCollection('cards')
 
   const [initialScrollPosition, setInitialScrollPosition] = useState(0)
   const [openMobileMenu, setOpenMobileMenu] = useState(false)
   const [openQuickAdd, setOpenQuickAdd] = useState(false)
-  const [importContent, setImportContent] = useState('<p>Hello World! 🌎️</p>')
+  const [importContent, setImportContent] = useState({
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Hello world'
+          }
+        ]
+      }
+    ]
+  })
   const [deck, setDeck] = useState('1')
 
   const uid = useUser()?.id
 
   const addVocabulary = async () => {
-    const user = await collection?.insert({
-      id: '123' + Date.now(),
-      meaning: 'hey',
-      user_id: uid || null
-    })
+    const cardContent = importContent?.content
+      .map((c) => c?.content && c.content[0]?.text)
+      .filter(Boolean)
 
-    await collection
-      ?.find()
-      .exec()
-      .then((doc) => console.log(doc))
+    if (!cardContent) return
+
+    const a = await cardsCollection?.bulkInsert(
+      cardContent.map((content) => {
+        const [term, ...meaning] = content.split('-')
+
+        return {
+          id: nanoid(),
+          term: term.trim(),
+          meaning: meaning.join('-').trim(),
+          created_at: Date.now(),
+          deck_id: null,
+          new: true,
+          reviews: [],
+          user_id: uid || null
+        }
+      })
+    )
+
+    console.log(a?.success.map((s) => s?._data))
   }
 
   const openImportDialog = () => {
