@@ -17,7 +17,7 @@ import {
   userSchema
 } from './schema'
 
-// removeRxDatabase('kotonoha', getRxStorageDexie())
+// removeRxDatabase('kotonoha-default', getRxStorageDexie())
 
 /**
  * Enable mango-query-syntax with chained methods
@@ -38,7 +38,7 @@ if (process.env.NODE_ENV === 'development') {
 let dbPromise: Promise<RxDatabase> | null = null
 let dbUserID: string | null = null
 
-export const create = async (uid?: string) => {
+export const create = async (uid: string | null) => {
   const db = await createRxDatabase({
     name: `kotonoha-${uid ? uid : 'default'}`,
     storage: getRxStorageDexie()

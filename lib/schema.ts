@@ -37,15 +37,8 @@ export const cardSchema = {
             type: 'string',
             format: 'date-time'
           },
-          due: {
-            type: 'string',
-            format: 'date-time'
-          },
           remembered: {
             type: 'boolean'
-          },
-          interval: {
-            type: 'number'
           }
         }
       }

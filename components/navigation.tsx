@@ -40,7 +40,7 @@ const siteLinks = [
     title: 'Dictionary'
   },
   {
-    href: '/sets',
+    href: '/vocabulary',
     title: 'Your Library'
   }
 ]
