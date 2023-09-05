@@ -4,7 +4,7 @@ import * as Progress from '@radix-ui/react-progress'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
 import { Cross1Icon, CheckIcon } from '@radix-ui/react-icons'
 import shuffle from 'lodash/shuffle'
-import type { CardDocument } from '../lib/types'
+// import type { CardDocument } from '../lib/types'
 import Tooltip from '../components/Tooltip'
 import { addDays } from 'date-fns'
 
@@ -33,7 +33,7 @@ export default function Review({
   cards,
   study
 }: {
-  cards: CardDocument[]
+  // cards: CardDocument[]
   study: 'flashcards' | 'match' | 'srs'
 }) {
   const [indexes, setIndexes] = useState(getInitialIndexes(cards.length))
