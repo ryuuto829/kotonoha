@@ -9,13 +9,8 @@ import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder'
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update'
 import { RxDBJsonDumpPlugin } from 'rxdb/plugins/json-dump'
 
-import {
-  cardSchema,
-  profileSchema,
-  progressSchema,
-  deckSchema,
-  userSchema
-} from './schema'
+import { profileSchema, progressSchema, deckSchema, userSchema } from './schema'
+import { cardSchema } from './card.schema'
 
 // removeRxDatabase('kotonoha-default', getRxStorageDexie())
 
