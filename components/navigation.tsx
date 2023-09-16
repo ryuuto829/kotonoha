@@ -317,7 +317,25 @@ export default function Navigation() {
         content: [
           {
             type: 'text',
-            text: 'Hello world'
+            text: 'Word 1 - Meaning 1'
+          }
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Word 2 - Meaning 2'
+          }
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Word 3 - Meaning 3'
           }
         ]
       }
@@ -345,8 +363,9 @@ export default function Navigation() {
           created_at: Date.now(),
           deck_id: null,
           new: true,
-          reviews: [],
-          user_id: uid || null
+          // reviews: [],
+          user_id: uid || null,
+          replicationRevision: null
         }
       })
     )

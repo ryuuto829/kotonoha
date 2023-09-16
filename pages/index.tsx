@@ -4,15 +4,6 @@ import useRxCollection from 'rxdb-hooks/dist/useRxCollection'
 export default function Home() {
   const collection = useRxCollection('new')
 
-  collection
-    ?.findOne({
-      selector: {
-        id: '1'
-      }
-    })
-    .exec()
-    .then((docs) => console.log(docs))
-
   return (
     <>
       <Head>

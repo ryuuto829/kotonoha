@@ -3,7 +3,6 @@ lockfileVersion: 5.4
 specifiers:
   '@heroicons/react': ^2.0.18
   '@next/font': 13.4.7
-  '@playwright/test': ^1.35.1
   '@radix-ui/react-avatar': ^1.0.3
   '@radix-ui/react-collapsible': ^1.0.3
   '@radix-ui/react-dialog': ^1.0.4
@@ -104,7 +103,6 @@ dependencies:
   wanakana: 5.1.0
 
 devDependencies:
-  '@playwright/test': 1.35.1
   '@tailwindcss/typography': 0.5.9_tailwindcss@3.3.2
   '@types/lodash': 4.14.195
   '@types/wanakana': 4.0.3
@@ -1182,17 +1180,6 @@ packages:
       picocolors: 1.0.0
       tslib: 2.6.0
     dev: false
-
-  /@playwright/test/1.35.1:
-    resolution: {integrity: sha512-b5YoFe6J9exsMYg0pQAobNDR85T1nLumUYgUTtKm4d21iX2L7WqKq9dW8NGJ+2vX0etZd+Y7UeuqsxDXm9+5ZA==}
-    engines: {node: '>=16'}
-    hasBin: true
-    dependencies:
-      '@types/node': 20.3.2
-      playwright-core: 1.35.1
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
 
   /@popperjs/core/2.11.8:
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
@@ -2709,6 +2696,7 @@ packages:
 
   /@types/node/20.3.2:
     resolution: {integrity: sha512-vOBLVQeCQfIcF/2Y7eKFTqrMnizK5lRNQ7ykML/5RuwVXVWxYkgwS7xbt4B6fKCUPgbSL5FSsjHQpaGQP/dQmw==}
+    dev: false
 
   /@types/object.omit/3.0.0:
     resolution: {integrity: sha512-I27IoPpH250TUzc9FzXd0P1BV/BMJuzqD3jOz98ehf9dQqGkxlq+hO1bIqZGWqCg5bVOy0g4AUVJtnxe0klDmw==}
@@ -5339,12 +5327,6 @@ packages:
   /pirates/4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
-    dev: true
-
-  /playwright-core/1.35.1:
-    resolution: {integrity: sha512-pNXb6CQ7OqmGDRspEjlxE49w+4YtR6a3X6mT1hZXeJHWmsEz7SunmvZeiG/+y1yyMZdHnnn73WKYdtV1er0Xyg==}
-    engines: {node: '>=16'}
-    hasBin: true
     dev: true
 
   /postcss-import/15.1.0_postcss@8.4.24:

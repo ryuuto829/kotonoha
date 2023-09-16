@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
-import Navigation from '../components/navigation'
 import { Inter } from 'next/font/google'
 import clsx from 'clsx'
+
+import Navigation from 'components/navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 

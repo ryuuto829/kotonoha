@@ -24,6 +24,7 @@ export default async function startReplication(
     pull: {}, // If absent, no data is pulled from Supabase
     push: {}, // If absent, no changes are pushed to Supabase
     retryTime: 50000,
+    // live: false,
     table: 'table_name'
   })
 

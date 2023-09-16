@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 import { get } from 'lib/database'
-import startReplication from 'lib/replication'
+// import startReplication from 'lib/replication'
 
 const createSupabaseClient = () =>
   createPagesBrowserClient({
@@ -24,7 +24,8 @@ export default function useDatabase() {
       /**
        * Initialize RxDB database by user id
        */
-      const db = await get(userID)
+      // const db = await get(userID)
+      const db = await get(null)
       setDb(db)
       console.log('[Client] Initialize RxDB database')
 
@@ -32,14 +33,15 @@ export default function useDatabase() {
        * Initialize Supabase replication if user is logged in
        */
       if (userID && db.name.includes(userID)) {
-        startReplication(db.new, supabaseClient)
+        // startReplication(db.cards, supabaseClient)
         console.log('[Client] Start replication to supabase')
       }
     }
 
     if (supabaseClient) {
-      initDatabase()
+      // initDatabase()
     }
+    initDatabase()
   }, [supabaseClient])
 
   return { db, supabaseClient }

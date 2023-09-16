@@ -32,6 +32,10 @@ export const cardSchemaLiteral = {
     user_id: {
       type: 'string'
     },
+    replicationRevision: {
+      type: 'string',
+      minLength: 3
+    },
     reviews: {
       type: 'array',
       items: {
